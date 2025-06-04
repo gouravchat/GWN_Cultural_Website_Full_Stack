@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greenwood Nest Cultural Club</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Light background */
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a0a0a0; /* Slightly darker for more contrast */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7a7a7a;
+        }
+
+        /* Custom animations */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.98); /* Less aggressive scale */
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px); /* Slightly less vertical movement */
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-scale {
+            animation: fadeInScale 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Smoother easing */
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Smoother easing */
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-800 { animation-delay: 0.8s; }
+        .delay-900 { animation-delay: 0.9s; }
+        .delay-1000 { animation-delay: 1s; }
+
+        /* Hero section background - simplified for cleaner look */
+        .hero-bg {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); /* Simpler, elegant gradient */
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-5 px-6 md:px-16 sticky top-0 z-50 border-b border-gray-100">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-3xl font-extrabold text-green-700 rounded-lg p-2 hover:text-green-800 transition duration-300">Greenwood Nest Cultural Club</a>
+            <nav class="hidden md:flex space-x-10">
+                <a href="#home" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Home</a>
+                <a href="#about" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">About</a>
+                <a href="#events" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Events</a>
+                <a href="#gallery" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Gallery</a>
+                <a href="#contact" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Contact</a>
+                <!-- Portal Links -->
+                <a href="#user-portal" class="text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">User Portal</a>
+                <a href="#admin-portal" class="text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">Admin Portal</a>
+            </nav>
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-white bg-opacity-95 z-40 flex flex-col items-center justify-center space-y-8">
+            <button id="close-mobile-menu" class="absolute top-8 right-8 text-gray-700 focus:outline-none">
+                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <a href="#home" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Home</a>
+            <a href="#about" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">About</a>
+            <a href="#events" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Events</a>
+            <a href="#gallery" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Gallery</a>
+            <a href="#contact" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Contact</a>
+            <!-- Portal Links for Mobile -->
+            <a href="#user-portal" class="text-4xl text-green-700 hover:text-green-800 font-semibold transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">User Portal</a>
+            <a href="#admin-portal" class="text-4xl text-green-700 hover:text-green-800 font-semibold transition duration-300" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Admin Portal</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="relative hero-bg text-white py-24 md:py-40 flex items-center justify-center min-h-screen overflow-hidden">
+            <div class="container mx-auto text-center px-8 z-10">
+                <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8 animate-fade-in-up delay-100">
+                    Experience Culture. <span class="text-yellow-200">Connect Community.</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto opacity-90 animate-fade-in-up delay-300">
+                    The Greenwood Nest Cultural Club is where traditions thrive and new stories begin.
+                </p>
+                <a href="#events" class="inline-block bg-white text-green-700 hover:bg-gray-100 px-10 py-5 rounded-full text-xl font-semibold shadow-xl transform hover:scale-105 transition duration-300 ease-in-out animate-fade-in-up delay-500">
+                    Discover Events
+                </a>
+            </div>
+            <!-- Subtle overlay for depth -->
+            <div class="absolute inset-0 bg-black opacity-20"></div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 md:py-32 bg-gray-50">
+            <div class="container mx-auto px-8 md:px-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate-fade-in-up">About Our Club</h2>
+                <div class="flex flex-col md:flex-row items-center md:space-x-16">
+                    <div class="md:w-1/2 mb-12 md:mb-0 animate-fade-in-scale delay-200">
+                        <img src="https://placehold.co/700x500/a3e635/ffffff?text=Cultural+Gathering" alt="Cultural Gathering" class="rounded-2xl shadow-xl transform hover:scale-102 transition duration-300 ease-in-out w-full h-auto object-cover">
+                    </div>
+                    <div class="md:w-1/2 text-xl leading-relaxed text-gray-700 animate-fade-in-up delay-400">
+                        <p class="mb-8">
+                            The Greenwood Nest Cultural Club is a vibrant community dedicated to celebrating and preserving the rich tapestry of cultural expressions. We believe in creating a space where creativity flourishes, traditions are honored, and meaningful connections are forged through shared experiences.
+                        </p>
+                        <p class="mb-8">
+                            Our diverse range of activities, from captivating dance showcases and soulful musical performances to engaging literary discussions and hands-on art workshops, is designed to enrich your life and deepen your connection with the spirit of our community.
+                        </p>
+                        <p>
+                            Join us on a journey of discovery, learning, and cultural celebration!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="py-20 md:py-32 bg-white">
+            <div class="container mx-auto px-8 md:px-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate-fade-in-up">Upcoming Events</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    <!-- Event Card 1 -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-up delay-200">
+                        <img src="https://placehold.co/500x300/65a30d/ffffff?text=Melodies+Night" alt="Music Night" class="w-full h-56 object-cover">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-4">Melodies & Mirth: An Evening of Music</h3>
+                            <p class="text-gray-600 mb-5">Experience a delightful evening featuring local talents and diverse musical genres. A perfect way to unwind and enjoy!</p>
+                            <div class="flex items-center text-gray-500 text-base mb-5">
+                                <svg class="w-6 h-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                                <span>July 15, 2025</span>
+                                <svg class="w-6 h-6 ml-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                                <span>Club Auditorium</span>
+                            </div>
+                            <a href="#" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition duration-300 text-base font-semibold shadow-md">Learn More</a>
+                        </div>
+                    </div>
+                    <!-- Event Card 2 -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-up delay-400">
+                        <img src="https://placehold.co/500x300/65a30d/ffffff?text=Art+Workshop" alt="Art Workshop" class="w-full h-56 object-cover">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-4">Canvas & Coffee: Painting Workshop</h3>
+                            <p class="text-gray-600 mb-5">Unleash your inner artist in a relaxed setting. All skill levels welcome, materials provided. Just bring your creativity!</p>
+                            <div class="flex items-center text-gray-500 text-base mb-5">
+                                <svg class="w-6 h-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                                <span>August 5, 2025</span>
+                                <svg class="w-6 h-6 ml-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                                <span>Art Studio, Block C</span>
+                            </div>
+                            <a href="#" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition duration-300 text-base font-semibold shadow-md">Learn More</a>
+                        </div>
+                    </div>
+                    <!-- Event Card 3 -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-up delay-600">
+                        <img src="https://placehold.co/500x300/65a30d/ffffff?text=Dance+Showcase" alt="Dance Performance" class="w-full h-56 object-cover">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-4">Rhythms of the World: Dance Showcase</h3>
+                            <p class="text-gray-600 mb-5">Experience vibrant dance forms from around the globe performed by our talented members. A truly global spectacle!</p>
+                            <div class="flex items-center text-gray-500 text-base mb-5">
+                                <svg class="w-6 h-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                                <span>September 1, 2025</span>
+                                <svg class="w-6 h-6 ml-6 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                                <span>Main Amphitheater</span>
+                            </div>
+                            <a href="#" class="inline-block bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition duration-300 text-base font-semibold shadow-md">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="py-20 md:py-32 bg-gray-50">
+            <div class="container mx-auto px-8 md:px-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate-fade-in-up">Our Gallery</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <!-- Gallery Item 1 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-200">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Annual+Festivities" alt="Event Highlight 1" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Annual Festivities</p>
+                        </div>
+                    </div>
+                    <!-- Gallery Item 2 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-300">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Art+Exhibition" alt="Event Highlight 2" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Art Exhibition</p>
+                        </div>
+                    </div>
+                    <!-- Gallery Item 3 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-400">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Dance+Workshop" alt="Event Highlight 3" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Dance Workshop</p>
+                        </div>
+                    </div>
+                    <!-- Gallery Item 4 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-500">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Musical+Performance" alt="Event Highlight 4" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Musical Performance</p>
+                        </div>
+                    </div>
+                    <!-- Gallery Item 5 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-600">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Community+Gathering" alt="Event Highlight 5" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Community Gathering</p>
+                        </div>
+                    </div>
+                    <!-- Gallery Item 6 -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition duration-300 ease-in-out animate-fade-in-scale delay-700">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Traditional+Crafts" alt="Event Highlight 6" class="w-full h-72 object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="text-white text-2xl font-semibold">Traditional Crafts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Portal Section -->
+        <section id="user-portal" class="py-20 md:py-32 bg-white">
+            <div class="container mx-auto px-8 md:px-16 text-center animate-fade-in-up">
+                <h2 class="text-4xl md:text-5xl font-bold text-green-700 mb-12">User Portal</h2>
+                <p class="text-xl mb-10 max-w-3xl mx-auto text-gray-700">
+                    Welcome to your personalized portal! Manage your membership, explore exclusive content, register for upcoming events, and connect seamlessly with fellow club members.
+                </p>
+                <a href="#" class="inline-block bg-green-600 text-white px-10 py-5 rounded-full text-xl font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
+                    Go to User Dashboard
+                </a>
+            </div>
+        </section>
+
+        <!-- Admin Portal Section -->
+        <section id="admin-portal" class="py-20 md:py-32 bg-gray-50">
+            <div class="container mx-auto px-8 md:px-16 text-center animate-fade-in-up">
+                <h2 class="text-4xl md:text-5xl font-bold text-green-700 mb-12">Admin Portal</h2>
+                <p class="text-xl mb-10 max-w-3xl mx-auto text-gray-700">
+                    This secure portal is exclusively for authorized administrators. Efficiently manage events, oversee member registrations, and control club resources with ease.
+                </p>
+                <a href="#" class="inline-block bg-green-600 text-white px-10 py-5 rounded-full text-xl font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
+                    Access Admin Dashboard
+                </a>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 md:py-32 bg-gradient-to-br from-green-700 to-green-900 text-white">
+            <div class="container mx-auto px-8 md:px-16 text-center animate-fade-in-up">
+                <h2 class="text-4xl md:text-5xl font-bold mb-16">Get in Touch</h2>
+                <p class="text-xl mb-12 max-w-3xl mx-auto opacity-90">
+                    Have questions, suggestions, or eager to join our community? We'd love to hear from you! Reach out through the form below or directly via contact details.
+                </p>
+                <div class="max-w-2xl mx-auto bg-white p-10 rounded-2xl shadow-xl text-gray-800">
+                    <form action="#" method="POST" class="space-y-8">
+                        <div>
+                            <label for="name" class="block text-left text-base font-medium text-gray-700 mb-2">Name</label>
+                            <input type="text" id="name" name="name" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="Your Full Name" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-left text-base font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="email" name="email" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="your.email@example.com" required>
+                        </div>
+                        <div>
+                            <label for="message" class="block text-left text-base font-medium text-gray-700 mb-2">Message</label>
+                            <textarea id="message" name="message" rows="6" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="Your message..." required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-4 px-8 rounded-full text-xl font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+                <div class="mt-16 text-xl">
+                    <p class="mb-4"><strong>Email:</strong> <a href="mailto:info@greenwoodnestclub.com" class="hover:underline">info@greenwoodnestclub.com</a></p>
+                    <p class="mb-4"><strong>Phone:</strong> +1 (123) 456-7890</p>
+                    <p><strong>Address:</strong> Greenwood Nest Community Hall, Block A, City, Country</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-10 px-8 md:px-16">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+            <p class="text-lg">&copy; 2025 Greenwood Nest Cultural Club. All rights reserved.</p>
+            <div class="flex space-x-8 mt-6 md:mt-0">
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Facebook</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Instagram</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Twitter</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.remove('hidden');
+        });
+
+        closeMobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

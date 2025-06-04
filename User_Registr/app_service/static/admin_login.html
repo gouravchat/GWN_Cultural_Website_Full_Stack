@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .register-link {
+            display: block;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form id="adminLoginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+            <div id="message" class="message" style="display: none;"></div>
+        </form>
+        <div class="register-link">
+            New admin? <a href="admin_registration.html">Register here</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // messageDiv is defined here, but needs to be accessible by displayMessage
+            // For now, we'll keep it here for the initial hiding/resetting,
+            // but the displayMessage function will get its own reference.
+            const messageDiv = document.getElementById('message'); 
+            messageDiv.style.display = 'none';
+            messageDiv.className = 'message';
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            console.log('Attempting to fetch /admin/login...'); // Debug Log 1
+            console.log('Login credentials:', { username, password: '***' }); // Debug Log 1.1
+
+            try {
+                // This will be proxied by app-service to app-admin
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                console.log('Fetch response received. Status:', response.status, 'OK status:', response.ok); // Debug Log 2
+
+                const result = await response.json();
+                console.log('Response JSON parsed:', result); // Debug Log 3
+
+                if (response.ok) {
+                    console.log('Inside response.ok block. Displaying success message and redirecting.'); // Debug Log 4
+                    displayMessage(result.message || 'Admin login successful!', 'success');
+                    // Store admin username for later use (e.g., in admin dashboard)
+                    localStorage.setItem('loggedInAdminUsername', username);
+                    console.log('Stored username in localStorage:', localStorage.getItem('loggedInAdminUsername')); // Debug Log 4.1
+                    setTimeout(() => {
+                        console.log('Redirecting now to admin_dashboard.html...'); // Debug Log 5
+                        window.location.href = `admin_dashboard.html?username=${username}`;
+                    }, 1000);
+                } else {
+                    console.log('Inside else block. Displaying error message.'); // Debug Log 6
+                    displayMessage(result.error || 'Admin login failed. Please check your credentials.', 'error');
+                }
+            } catch (error) {
+                console.error('Error during admin login (catch block):', error); // Debug Log 7
+                displayMessage('Network error or server is unreachable.', 'error');
+            }
+        });
+
+        function displayMessage(message, type) {
+            console.log('displayMessage called with:', message, type); // Debug Log 8
+            const messageDiv = document.getElementById('message'); // FIX: Get messageDiv inside this function
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

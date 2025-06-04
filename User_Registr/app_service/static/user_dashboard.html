@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Event Subscriptions</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        .close-button:hover {
+            color: #6b7280; /* text-gray-600 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <header class="w-full max-w-7xl flex justify-between items-center py-4 px-6 bg-white rounded-xl shadow-md mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Community Hub</h1>
+        <div class="flex items-center space-x-4">
+            <span id="welcomeMessage" class="text-lg font-medium text-gray-700">Welcome, User!</span>
+            <button id="logoutButton" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 ease-in-out shadow-md">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-7xl flex flex-col lg:flex-row gap-8">
+        
+        <!-- Available Events Section -->
+        <section class="flex-1 bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Available Events</h2>
+
+            <!-- Events Dropdown -->
+            <div class="mb-6">
+                <label for="eventSelect" class="block text-gray-700 text-sm font-bold mb-2">Select an Event:</label>
+                <select id="eventSelect" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">-- Select an Event --</option>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+
+            <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Event cards will be loaded here by JavaScript -->
+                <!-- Initial skeleton loaders -->
+                <div class="bg-gray-100 p-6 rounded-lg shadow-sm animate-pulse">
+                    <div class="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
+                    <div class="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div class="h-4 bg-gray-300 rounded w-full mb-4"></div>
+                    <div class="h-10 bg-gray-300 rounded w-full"></div>
+                </div>
+                <div class="bg-gray-100 p-6 rounded-lg shadow-sm animate-pulse">
+                    <div class="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
+                    <div class="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div class="h-4 bg-gray-300 rounded w-full mb-4"></div>
+                    <div class="h-10 bg-gray-300 rounded w-full"></div>
+                </div>
+                <div class="bg-gray-100 p-6 rounded-lg shadow-sm animate-pulse">
+                    <div class="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
+                    <div class="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div class="h-4 bg-gray-300 rounded w-full mb-4"></div>
+                    <div class="h-10 bg-gray-300 rounded w-full"></div>
+                </div>
+            </div>
+            <p id="noEventsMessage" class="text-gray-600 text-center mt-8 hidden">No upcoming events available at the moment. Check back later!</p>
+        </section>
+
+    </main>
+
+    <!-- Event Details Modal -->
+    <div id="eventDetailsModal" class="modal flex">
+        <div class="modal-content">
+            <span class="close-button" id="closeEventDetailsModal">&times;</span>
+            <h3 id="modalEventName" class="text-2xl font-bold text-gray-800 mb-4"></h3>
+            <p class="text-gray-600 mb-2"><strong>Time:</strong> <span id="modalEventTime"></span></p>
+            <p class="text-gray-600 mb-2"><strong>Venue:</strong> <span id="modalEventVenue"></span></p>
+            <p class="text-gray-600 mb-4"><strong>Details:</strong> <span id="modalEventDetails"></span></p>
+            <img id="modalEventPhoto" class="w-full h-48 object-cover rounded-lg mb-4" alt="Event Photo" onerror="this.style.display='none'">
+
+            <h4 class="text-xl font-semibold text-gray-700 mb-3">Subscription Details:</h4>
+            <div class="space-y-2 mb-4">
+                <p class="text-gray-600"><strong>Cover Charges:</strong> <span id="modalCoverCharges"></span> (<span id="modalCoverChargesType"></span>)</p>
+                <p class="text-gray-600"><strong>Veg Food Charges:</strong> <span id="modalVegFoodCharges"></span> (<span id="modalVegFoodChargesType"></span>)</p>
+                <p class="text-gray-600"><strong>Non-Veg Food Charges:</strong> <span id="modalNonVegFoodCharges"></span> (<span id="modalNonVegFoodChargesType"></span>)</p>
+                <p class="text-gray-600"><strong>Additional Charges:</strong> <span id="modalAdditionalCharges"></span> (<span id="modalAdditionalChargesType"></span>)</p>
+            </div>
+            <p class="text-red-600 font-medium mb-4">Subscription closes on: <span id="modalCloseDate"></span></p>
+
+            <button id="participateButton" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out shadow-md">Participate</button>
+        </div>
+    </div>
+
+    <!-- NEW: Participation Modal -->
+    <div id="participationModal" class="modal flex">
+        <div class="modal-content">
+            <span class="close-button" id="closeParticipationModal">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Participate in <span id="participationEventName" class="text-blue-600"></span></h3>
+            
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div class="flex-1">
+                    <label for="numVeg" class="block text-gray-700 text-sm font-bold mb-2">Number of Veg Attendees:</label>
+                    <input type="number" id="numVeg" min="0" value="0" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex-1">
+                    <label for="numNonVeg" class="block text-gray-700 text-sm font-bold mb-2">Number of Non-Veg Attendees:</label>
+                    <input type="number" id="numNonVeg" min="0" value="0" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </div>
+
+            <div class="form-group mb-6">
+                <label for="contribution" class="block text-gray-700 text-sm font-bold mb-2">Contribution (Optional) ₹:</label>
+                <input type="number" id="contribution" min="0" value="0" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <p class="text-xl font-bold text-gray-800 mb-6">Total Amount: ₹<span id="totalAmount">0.00</span></p>
+
+            <button id="proceedToPayButton" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out shadow-md">Proceed to Pay</button>
+            <div id="paymentErrorMessage" class="text-red-500 text-center mt-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Payment Confirmation Modal -->
+    <div id="paymentConfirmationModal" class="modal flex">
+        <div class="modal-content text-center">
+            <span class="close-button" id="closePaymentConfirmationModal">&times;</span>
+            <h3 class="text-2xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h3>
+            <p class="text-gray-700 mb-2">Your subscription for <span id="confirmEventName" class="font-semibold"></span> has been confirmed.</p>
+            <p class="text-gray-700 mb-2">Transaction ID: <span id="transactionId" class="font-mono bg-gray-100 px-2 py-1 rounded"></span></p>
+            <p class="text-gray-700 mb-4">Amount Paid: ₹<span id="confirmAmountPaid" class="font-semibold"></span></p>
+            <button id="goToDashboardButton" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out shadow-md">Go to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Message Box (for alerts/confirmations) -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 hidden">
+        <p id="messageBoxText"></p>
+        <button class="absolute top-1 right-2 text-white text-lg" onclick="document.getElementById('messageBox').classList.add('hidden')">&times;</button>
+    </div>
+
+    <script>
+        const APP_FRONTEND_URL = "http://localhost:5000"; // Assuming frontend is on 5000
+        const eventsContainer = document.getElementById('eventsContainer');
+        const eventDetailsModal = document.getElementById('eventDetailsModal');
+        const participationModal = document.getElementById('participationModal'); // New modal
+        const paymentConfirmationModal = document.getElementById('paymentConfirmationModal');
+        const closeEventDetailsModal = document.getElementById('closeEventDetailsModal');
+        const closeParticipationModal = document.getElementById('closeParticipationModal'); // New close button
+        const closePaymentConfirmationModal = document.getElementById('closePaymentConfirmationModal');
+        const participateButton = document.getElementById('participateButton'); // New button
+        const proceedToPayButton = document.getElementById('proceedToPayButton');
+        const goToDashboardButton = document.getElementById('goToDashboardButton');
+        const messageBox = document.getElementById('messageBox');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const eventSelect = document.getElementById('eventSelect');
+        
+        let currentEvent = null; // To store the event being viewed/paid for
+        let loggedInUserPhoneNumber = null; // To store the logged-in user's phone number
+        let allEvents = []; // To store all fetched events
+
+        // Function to display messages (replaces alert/confirm)
+        function showMessageBox(message, type = 'info') {
+            messageBoxText.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-blue-500');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-500');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-500');
+            } else {
+                messageBox.classList.add('bg-blue-500');
+            }
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- User Session Management ---
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            localStorage.removeItem('loggedInUserPhoneNumber');
+            window.location.href = 'login.html'; // Redirect to login page
+        });
+
+        // Check if user is logged in on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            loggedInUserPhoneNumber = localStorage.getItem('loggedInUserPhoneNumber'); // Assign to global variable
+            if (!loggedInUserPhoneNumber) {
+                showMessageBox('You are not logged in. Redirecting to login.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${loggedInUserPhoneNumber}!`;
+            await fetchEvents();
+        });
+
+        // --- Fetch Events ---
+        async function fetchEvents() {
+            eventsContainer.innerHTML = ''; // Clear existing content, including skeleton loaders
+            eventSelect.innerHTML = '<option value="">-- Select an Event --</option>'; // Clear dropdown
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/events`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    allEvents = result; // Store all events
+                    if (allEvents.length > 0) {
+                        allEvents.forEach(event => {
+                            renderEventCard(event);
+                            addEventToDropdown(event); // Add to dropdown
+                        });
+                        document.getElementById('noEventsMessage').classList.add('hidden');
+                    } else {
+                        document.getElementById('noEventsMessage').classList.remove('hidden');
+                    }
+                } else {
+                    showMessageBox(result.error || 'Failed to load events.', 'error');
+                    document.getElementById('noEventsMessage').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                showMessageBox('Network error or server is unreachable. Could not load events.', 'error');
+                document.getElementById('noEventsMessage').classList.remove('hidden');
+            }
+        }
+
+        function renderEventCard(event) {
+            const eventCard = document.createElement('div');
+            eventCard.className = 'bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col justify-between';
+            eventCard.innerHTML = `
+                <img src="${event.photo_url || 'https://placehold.co/300x200/e0e0e0/555555?text=No+Image'}" 
+                     alt="${event.name}" 
+                     class="w-full h-40 object-cover rounded-lg mb-4"
+                     onerror="this.onerror=null; this.src='https://placehold.co/300x200/e0e0e0/555555?text=No+Image';">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">${event.name}</h3>
+                <p class="text-gray-600 text-sm mb-1"><strong>Venue:</strong> ${event.venue}</p>
+                <p class="text-gray-600 text-sm mb-4"><strong>Time:</strong> ${new Date(event.time).toLocaleString()}</p>
+                <button data-event-id="${event.id}" class="view-details-button mt-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 ease-in-out shadow-md">View Details & Join</button>
+            `;
+            eventsContainer.appendChild(eventCard);
+
+            eventCard.querySelector('.view-details-button').addEventListener('click', () => openEventDetailsModal(event.id));
+        }
+
+        // Function to add events to the dropdown
+        function addEventToDropdown(event) {
+            const option = document.createElement('option');
+            option.value = event.id;
+            option.textContent = `${event.name} (ID: ${event.id})`;
+            eventSelect.appendChild(option);
+        }
+
+        // Event listener for dropdown change
+        eventSelect.addEventListener('change', (e) => {
+            const selectedEventId = e.target.value;
+            if (selectedEventId) {
+                // Clear event cards when an event is selected from the dropdown
+                eventsContainer.innerHTML = ''; 
+                document.getElementById('noEventsMessage').classList.add('hidden'); // Hide no events message
+                openEventDetailsModal(parseInt(selectedEventId));
+            } else {
+                eventDetailsModal.style.display = 'none'; // Hide modal if "Select an Event" is chosen
+                participationModal.style.display = 'none'; // Also hide participation modal
+                fetchEvents(); // Re-fetch and display all event cards if dropdown is reset
+            }
+        });
+
+
+        // --- Event Details Modal Logic ---
+        async function openEventDetailsModal(eventId) {
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/events/${eventId}`);
+                const event = await response.json();
+
+                if (response.ok) {
+                    currentEvent = event; // Store the current event
+                    document.getElementById('modalEventName').textContent = event.name;
+                    document.getElementById('modalEventTime').textContent = new Date(event.time).toLocaleString();
+                    document.getElementById('modalEventVenue').textContent = event.venue;
+                    document.getElementById('modalEventDetails').textContent = event.details;
+                    document.getElementById('modalEventPhoto').src = event.photo_url || 'https://placehold.co/300x200/e0e0e0/555555?text=No+Image';
+                    document.getElementById('modalEventPhoto').style.display = event.photo_url ? 'block' : 'none'; // Show/hide image based on URL presence
+
+                    // Populate subscription details
+                    document.getElementById('modalCoverCharges').textContent = `₹${event.subscription.coverCharges.toFixed(2)}`;
+                    document.getElementById('modalCoverChargesType').textContent = event.subscription.coverChargesType.replace('_', ' ');
+                    document.getElementById('modalVegFoodCharges').textContent = `₹${event.subscription.vegFoodCharges.toFixed(2)}`;
+                    document.getElementById('modalVegFoodChargesType').textContent = event.subscription.vegFoodChargesType.replace('_', ' ');
+                    document.getElementById('modalNonVegFoodCharges').textContent = `₹${event.subscription.nonVegFoodCharges.toFixed(2)}`;
+                    document.getElementById('modalNonVegFoodChargesType').textContent = event.subscription.nonVegFoodChargesType.replace('_', ' ');
+                    document.getElementById('modalAdditionalCharges').textContent = `₹${event.subscription.additionalCharges.toFixed(2)}`;
+                    document.getElementById('modalAdditionalChargesType').textContent = event.subscription.additionalChargesType.replace('_', ' ');
+                    document.getElementById('modalCloseDate').textContent = new Date(event.close_date).toLocaleString();
+
+                    eventDetailsModal.style.display = 'flex'; // Show modal
+                } else {
+                    showMessageBox(event.error || 'Failed to load event details.', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching single event:', error);
+                showMessageBox('Network error or server is unreachable. Could not load event details.', 'error');
+            }
+        }
+
+        // --- NEW: Open Participation Modal ---
+        participateButton.addEventListener('click', () => {
+            if (!currentEvent) {
+                showMessageBox('No event selected for participation.', 'error');
+                return;
+            }
+            eventDetailsModal.style.display = 'none'; // Hide event details modal
+
+            document.getElementById('participationEventName').textContent = currentEvent.name;
+            // Reset attendees and contribution for new participation
+            document.getElementById('numVeg').value = 0;
+            document.getElementById('numNonVeg').value = 0;
+            document.getElementById('contribution').value = 0;
+            calculateTotalAmount(); // Calculate initial total (0)
+
+            participationModal.style.display = 'flex'; // Show participation modal
+        });
+
+        // --- Calculate Total Amount (now includes contribution) ---
+        function calculateTotalAmount() {
+            if (!currentEvent) return;
+
+            const numVeg = parseInt(document.getElementById('numVeg').value) || 0;
+            const numNonVeg = parseInt(document.getElementById('numNonVeg').value) || 0;
+            const contribution = parseFloat(document.getElementById('contribution').value) || 0;
+
+            let total = 0;
+
+            // Cover Charges
+            if (currentEvent.subscription.coverChargesType === 'per_head') {
+                total += currentEvent.subscription.coverCharges * (numVeg + numNonVeg);
+            } else { // per_family
+                total += currentEvent.subscription.coverCharges;
+            }
+
+            // Food Charges
+            total += currentEvent.subscription.vegFoodCharges * numVeg;
+            total += currentEvent.subscription.nonVegFoodCharges * numNonVeg;
+
+            // Additional Charges
+            if (currentEvent.subscription.additionalChargesType === 'per_head') {
+                total += currentEvent.subscription.additionalCharges * (numVeg + numNonVeg);
+            } else { // per_family
+                total += currentEvent.subscription.additionalCharges;
+            }
+
+            // Add optional contribution
+            total += contribution;
+
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        // Event listeners for inputs in participation modal
+        document.getElementById('numVeg').addEventListener('input', calculateTotalAmount);
+        document.getElementById('numNonVeg').addEventListener('input', calculateTotalAmount);
+        document.getElementById('contribution').addEventListener('input', calculateTotalAmount);
+
+        closeEventDetailsModal.addEventListener('click', () => {
+            eventDetailsModal.style.display = 'none';
+            document.getElementById('paymentErrorMessage').classList.add('hidden'); // Hide any previous error
+            eventSelect.value = ""; // Reset dropdown selection
+            fetchEvents(); // Re-fetch all events to show the cards again
+        });
+
+        closeParticipationModal.addEventListener('click', () => {
+            participationModal.style.display = 'none';
+            document.getElementById('paymentErrorMessage').classList.add('hidden'); // Hide any previous error
+            eventSelect.value = ""; // Reset dropdown selection
+            fetchEvents(); // Re-fetch all events to show the cards again
+        });
+
+        // --- Payment Logic ---
+        proceedToPayButton.addEventListener('click', async () => {
+            if (!currentEvent || !loggedInUserPhoneNumber) return;
+
+            const numVeg = parseInt(document.getElementById('numVeg').value) || 0;
+            const numNonVeg = parseInt(document.getElementById('numNonVeg').value) || 0;
+            const totalAmount = parseFloat(document.getElementById('totalAmount').textContent);
+
+            if (numVeg === 0 && numNonVeg === 0 && totalAmount === 0) { // Allow 0 attendees if contribution is made
+                document.getElementById('paymentErrorMessage').textContent = 'Please specify at least one attendee or make a contribution.';
+                document.getElementById('paymentErrorMessage').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('paymentErrorMessage').classList.add('hidden'); // Clear previous error
+
+            showMessageBox('Processing payment...', 'info');
+
+            const participationData = {
+                userPhoneNumber: loggedInUserPhoneNumber,
+                eventId: currentEvent.id,
+                numVegAttendees: numVeg,
+                numNonVegAttendees: numNonVeg,
+                totalPayableAmount: totalAmount,
+                currentPaymentAmount: totalAmount // Assuming full payment for now
+            };
+
+            try {
+                // Step 1: Create/Update participation record
+                const participationResponse = await fetch(`${APP_FRONTEND_URL}/api/participations`, {
+                    method: 'POST', // Or PUT if updating existing
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(participationData)
+                });
+                const participationResult = await participationResponse.json();
+
+                if (!participationResponse.ok) {
+                    if (participationResponse.status === 409) { // Conflict: User already registered
+                        showMessageBox('You are already registered for this event. Attempting to update payment...', 'info');
+                        // If already registered, attempt to update payment instead
+                        const updatePaymentResponse = await fetch(`${APP_FRONTEND_URL}/api/participations/${loggedInUserPhoneNumber}/${currentEvent.id}/payment`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paymentAmount: totalAmount }) // Pay full amount again
+                        });
+                        const updatePaymentResult = await updatePaymentResponse.json();
+                        if (!updatePaymentResponse.ok) {
+                            showMessageBox(updatePaymentResult.error || 'Failed to update payment for existing registration.', 'error');
+                            document.getElementById('paymentErrorMessage').textContent = updatePaymentResult.error || 'Failed to update payment.';
+                            document.getElementById('paymentErrorMessage').classList.remove('hidden');
+                            return;
+                        }
+                    } else {
+                        showMessageBox(participationResult.error || 'Failed to record participation.', 'error');
+                        document.getElementById('paymentErrorMessage').textContent = participationResult.error || 'Failed to record participation.';
+                        document.getElementById('paymentErrorMessage').classList.remove('hidden');
+                        return;
+                    }
+                }
+
+                // Step 2: Simulate LLM API call for payment confirmation text/transaction ID
+                const prompt = `Generate a short, unique transaction ID and a brief payment confirmation message for an event named "${currentEvent.name}" with a total amount of ₹${totalAmount.toFixed(2)}. The message should be friendly and confirm the payment.`;
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { 
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "transactionId": { "type": "STRING" },
+                                "confirmationMessage": { "type": "STRING" }
+                            }
+                        }
+                    }
+                };
+                const apiKey = ""; // Canvas will provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const llmResponse = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const llmResult = await llmResponse.json();
+
+                let transactionId = 'TXN_SIM_' + Math.random().toString(36).substring(2, 11).toUpperCase();
+                let confirmationMessage = `Your payment for ${currentEvent.name} was successful!`;
+
+                if (llmResult.candidates && llmResult.candidates.length > 0 &&
+                    llmResult.candidates[0].content && llmResult.candidates[0].content.parts &&
+                    llmResult.candidates[0].content.parts.length > 0) {
+                    const llmJson = JSON.parse(llmResult.candidates[0].content.parts[0].text);
+                    transactionId = llmJson.transactionId || transactionId;
+                    confirmationMessage = llmJson.confirmationMessage || confirmationMessage;
+                }
+
+                // Simulate backend processing time
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Shorter delay after participation recorded
+
+                // Assuming payment is successful
+                showMessageBox('Payment processed successfully!', 'success');
+                participationModal.style.display = 'none'; // Hide participation modal
+
+                // Populate confirmation modal
+                document.getElementById('confirmEventName').textContent = currentEvent.name;
+                document.getElementById('transactionId').textContent = transactionId;
+                document.getElementById('confirmAmountPaid').textContent = totalAmount.toFixed(2);
+                paymentConfirmationModal.style.display = 'flex'; // Show confirmation modal
+
+            } catch (error) {
+                console.error('Error during payment or participation recording:', error);
+                showMessageBox('Payment failed. Please try again later.', 'error');
+                document.getElementById('paymentErrorMessage').textContent = 'Payment processing failed. Please try again.';
+                document.getElementById('paymentErrorMessage').classList.remove('hidden');
+            }
+        });
+
+        closePaymentConfirmationModal.addEventListener('click', () => {
+            paymentConfirmationModal.style.display = 'none';
+            fetchEvents(); // Refresh event list in case anything changed (e.g., event expired)
+        });
+
+        goToDashboardButton.addEventListener('click', () => {
+            paymentConfirmationModal.style.display = 'none';
+            fetchEvents(); // Refresh event list
+        });
+
+        // Close modals if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target == eventDetailsModal) {
+                eventDetailsModal.style.display = 'none';
+                document.getElementById('paymentErrorMessage').classList.add('hidden');
+                eventSelect.value = ""; // Reset dropdown selection
+                fetchEvents(); // Re-fetch all events to show the cards again
+            }
+            if (event.target == participationModal) {
+                participationModal.style.display = 'none';
+                document.getElementById('paymentErrorMessage').classList.add('hidden');
+                eventSelect.value = ""; // Reset dropdown selection
+                fetchEvents(); // Re-fetch all events to show the cards again
+            }
+            if (event.target == paymentConfirmationModal) {
+                paymentConfirmationModal.style.display = 'none';
+                fetchEvents();
+            }
+        });
+    </script>
+</body>
+</html>

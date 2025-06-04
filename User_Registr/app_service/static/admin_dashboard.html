@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Tailwind CSS CDN - Used for new modal styling and some general utilities -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Existing styles from your provided admin_dashboard.html */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 20px auto;
+            position: relative; /* Needed for absolute positioning of profile icon */
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .admin-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #555;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6fb;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .logout-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .logout-link a {
+            color: #dc3545; /* Red for logout */
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .logout-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Styles for Sections */
+        .section-header {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="datetime-local"],
+        input[type="file"],
+        input[type="number"], /* Style for number input */
+        textarea,
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        button.action-btn { /* General button style for sections */
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button.create-event-btn {
+            background-color: #28a745; /* Green for create */
+        }
+        button.create-event-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Styles for toggling forms */
+        .toggle-form-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .toggle-form-btn:hover {
+            background-color: #0056b3;
+        }
+        .form-container-box { /* General container for togglable forms */
+            display: none; /* Hidden by default */
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            margin-top: 15px;
+        }
+        /* Styles for Event Registrations Viewer */
+        .event-viewer-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .event-viewer-controls select {
+            flex-grow: 1;
+        }
+        .event-viewer-controls button {
+            padding: 10px 15px;
+            background-color: #6c757d; /* Grey for view button */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .event-viewer-controls button:hover {
+            background-color: #5a6268;
+        }
+        .event-users-table-container {
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+        }
+
+        /* Styles for Event Subscription */
+        .subscription-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .subscription-item label {
+            flex-basis: 150px; /* Fixed width for labels */
+            margin-bottom: 0;
+        }
+        .subscription-item input[type="number"] {
+            flex-grow: 1; /* Take available space */
+            max-width: 150px; /* Limit width */
+        }
+        .subscription-item select {
+            flex-grow: 1;
+            max-width: 150px; /* Limit width */
+        }
+        button.save-settings-btn {
+            background-color: #17a2b8; /* Info blue for save settings */
+        }
+        button.save-settings-btn:hover {
+            background-color: #138496;
+        }
+
+        /* Styles for Show Event Info */
+        .event-info-display {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            margin-top: 15px;
+            display: none; /* Hidden by default */
+        }
+        .event-info-display p {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .event-info-display strong {
+            color: #333;
+        }
+        .event-info-display img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: block; /* Ensures image takes its own line */
+        }
+        .event-info-display .section-header { /* Nested section header */
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        /* Admin Profile Icon and Pop-up */
+        .admin-profile-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100; /* Ensure it's on top */
+        }
+        .admin-profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #007bff; /* Default background if no image */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden; /* Hide overflow for circular image */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+        .admin-profile-icon:hover {
+            transform: scale(1.05);
+        }
+        .admin-profile-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .admin-profile-popup {
+            position: absolute;
+            top: 50px; /* Position below the icon */
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            width: 200px;
+            display: none; /* Hidden by default */
+            z-index: 101;
+            text-align: left;
+        }
+        .admin-profile-popup p {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .admin-profile-popup p:last-child {
+            margin-bottom: 0;
+        }
+        .admin-profile-popup strong {
+            color: #007bff;
+        }
+
+        /* New Modal Styles (using Tailwind for flex, padding, rounded, shadow) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
+            width: 90%;
+            max-width: 800px; /* Increased max-width for more content */
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        .close-button:hover {
+            color: #6b7280; /* text-gray-600 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-profile-container">
+            <div class="admin-profile-icon" id="adminProfileIcon">
+                <img src="https://placehold.co/40x40/007bff/ffffff?text=Admin" alt="Admin Profile">
+            </div>
+            <div class="admin-profile-popup" id="adminProfilePopup">
+                <p><strong>User ID:</strong> <span id="popupAdminId"></span></p>
+                <p><strong>Name:</strong> <span id="popupAdminName"></span></p>
+            </div>
+        </div>
+
+        <h2>Admin Dashboard</h2>
+        <div class="admin-info">
+            Welcome, <span id="adminUsername"></span>!
+        </div>
+        <div id="message" class="message"></div>
+        
+        <h3 class="section-header">Event Management</h3>
+        <button type="button" id="toggleEventFormBtn" class="toggle-form-btn">Add New Event</button>
+
+        <div id="eventFormContainer" class="form-container-box">
+            <form id="createEventForm">
+                <div class="form-group">
+                    <label for="eventName">Event Name:</label>
+                    <input type="text" id="eventName" name="eventName" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventTime">Event Time:</label>
+                    <input type="datetime-local" id="eventTime" name="eventTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventCloseDate">Subscription Close Date:</label>
+                    <input type="datetime-local" id="eventCloseDate" name="eventCloseDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventVenue">Event Venue:</label>
+                    <input type="text" id="eventVenue" name="eventVenue" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDetails">Event Details:</label>
+                    <textarea id="eventDetails" name="eventDetails" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="eventPhoto">Event Photo:</label>
+                    <input type="file" id="eventPhoto" name="eventPhoto" accept="image/*">
+                </div>
+                
+                <h4 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Event Subscription Configuration</h4>
+                <div class="subscription-settings-container">
+                    <div class="subscription-item">
+                        <label for="coverCharges">Cover Charges:</label>
+                        <input type="number" id="coverCharges" min="0" value="0">
+                        <select id="coverChargesType">
+                            <option value="per_head">Per Head</option>
+                            <option value="per_family">Per Family</option>
+                        </select>
+                    </div>
+
+                    <div class="subscription-item">
+                        <label for="vegFoodCharges">Veg Food Charges:</label>
+                        <input type="number" id="vegFoodCharges" min="0" value="0">
+                        <select id="vegFoodChargesType">
+                            <option value="per_head">Per Head</option>
+                            <option value="per_family">Per Family</option>
+                        </select>
+                    </div>
+
+                    <div class="subscription-item">
+                        <label for="nonVegFoodCharges">Non-Veg Food Charges:</label>
+                        <input type="number" id="nonVegFoodCharges" min="0" value="0">
+                        <select id="nonVegFoodChargesType">
+                            <option value="per_head">Per Head</                            <option value="per_family">Per Family</option>
+                        </select>
+                    </div>
+
+                    <div class="subscription-item">
+                        <label for="additionalCharges">Additional Charges:</label>
+                        <input type="number" id="additionalCharges" min="0" value="0">
+                        <select id="additionalChargesType">
+                            <option value="per_head">Per Head</option>
+                            <option value="per_family">Per Family</option>
+                        </select>
+                    </div>
+                    <button type="button" id="saveSubscriptionSettingsBtn" class="action-btn save-settings-btn">Save Subscription Settings</button>
+                    <div id="subscriptionMessage" class="message" style="display: none;"></div>
+                </div>
+                <button type="submit" class="action-btn create-event-btn">Create Event</button>
+                <div id="eventMessage" class="message" style="display: none;"></div>
+            </form>
+        </div>
+
+        <h3 class="section-header">Show Event Info</h3>
+        <div class="event-viewer-controls">
+            <label for="eventInfoSelect" style="margin-bottom: 0;">Select Event:</label>
+            <select id="eventInfoSelect">
+                <option value="">-- Select an Event --</option>
+            </select>
+            <button type="button" id="showEventInfoBtn">Show Event Info</button>
+        </div>
+        <div id="eventInfoDisplay" class="event-info-display">
+            <div id="eventDetailsDisplayArea"></div>
+
+            <h4 class="section-header">Registered Users (All)</h4>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Tower</th>
+                        <th>Wing</th>
+                        <th>Flat No.</th>
+                        <th>Flat Type</th>
+                        <th>Role</th>
+                        <th>Registered On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+        <div id="eventInfoMessage" class="message" style="display: none;"></div>
+
+
+        <h3 class="section-header">View Event Registrations</h3>
+        <div class="event-viewer-controls">
+            <label for="eventSelect" style="margin-bottom: 0;">Select Event:</label>
+            <select id="eventSelect">
+                <option value="">-- Select an Event --</option>
+            </select>
+            <button type="button" id="showEventRegistrationsBtn">Show Registrations</button>
+        </div>
+        <div id="eventUsersTableContainer" class="event-users-table-container" style="display: none;">
+            <h4>Registered Users for <span id="selectedEventName"></span></h4>
+            <table id="eventUsersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+            <div id="noEventUsersMessage" class="message success" style="display: none;"></div>
+        </div>
+
+        <div class="logout-link">
+            <a href="admin_login.html" id="adminLogoutLink">Logout</a>
+        </div>
+    </div>
+
+    <!-- Event Details and Participants Modal (NEW) -->
+    <div id="eventDetailsAndParticipantsModal" class="modal flex">
+        <div class="modal-content">
+            <span class="close-button" id="closeEventDetailsAndParticipantsModal">&times;</span>
+            <h3 id="eventDetailsAndParticipantsModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Event Details & Participants</h3>
+            
+            <div id="modalEventDetails" class="mb-6 border-b pb-4">
+                <h4 class="text-xl font-semibold text-gray-700 mb-2">Event Information:</h4>
+                <p><strong>Name:</strong> <span id="detailEventName"></span></p>
+                <p><strong>Time:</strong> <span id="detailEventTime"></span></p>
+                <p><strong>Venue:</strong> <span id="detailEventVenue"></span></p>
+                <p><strong>Details:</strong> <span id="detailEventDetails"></span></p>
+                <img id="detailEventPhoto" class="mt-4 w-full h-48 object-cover rounded-lg" alt="Event Photo" onerror="this.style.display='none'">
+            </div>
+
+            <h4 class="text-xl font-semibold text-gray-700 mb-3">Participants:</h4>
+            <div id="participantsList" class="space-y-4">
+                <!-- Participant details will be loaded here -->
+                <p id="noParticipantsMessage" class="text-gray-600 text-center hidden">No participants for this event yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box (for alerts/confirmations - using Tailwind for styling) -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 hidden">
+        <p id="messageBoxText"></p>
+        <button class="absolute top-1 right-2 text-white text-lg" onclick="document.getElementById('messageBox').classList.add('hidden')">&times;</button>
+    </div>
+
+    <script>
+        const APP_FRONTEND_URL = "http://localhost:5000"; // Assuming app-service runs on 5000
+        const globalMessageDiv = document.getElementById('message'); // For general dashboard messages
+        const eventMessageDiv = document.getElementById('eventMessage'); // For event form specific messages
+        const subscriptionMessageDiv = document.getElementById('subscriptionMessage'); // For subscription settings messages
+        const adminUsernameSpan = document.getElementById('adminUsername');
+        const usersTableBody = document.querySelector('#usersTable tbody'); // Target for All Users table
+        const toggleEventFormBtn = document.getElementById('toggleEventFormBtn');
+        const eventFormContainer = document.getElementById('eventFormContainer');
+
+        // Elements for event registration viewer
+        const eventSelect = document.getElementById('eventSelect');
+        const showEventRegistrationsBtn = document.getElementById('showEventRegistrationsBtn');
+        const eventUsersTableContainer = document.getElementById('eventUsersTableContainer'); // This will now be hidden
+        const selectedEventNameSpan = document.getElementById('selectedEventName'); // This will now be hidden
+        const eventUsersTableBody = document.querySelector('#eventUsersTable tbody'); // This will now be hidden
+        const noEventUsersMessage = document.getElementById('noEventUsersMessage'); // This will now be hidden
+
+        // Elements for Event Subscription Configuration
+        const saveSubscriptionSettingsBtn = document.getElementById('saveSubscriptionSettingsBtn');
+
+        // Elements for Show Event Info
+        const eventInfoSelect = document.getElementById('eventInfoSelect');
+        const showEventInfoBtn = document.getElementById('showEventInfoBtn');
+        const eventInfoDisplay = document.getElementById('eventInfoDisplay'); // Main container for event info
+        const eventDetailsDisplayArea = document.getElementById('eventDetailsDisplayArea'); // Area for event details
+        const eventInfoMessage = document.getElementById('eventInfoMessage');
+
+        // Elements for Admin Profile Icon
+        const adminProfileIcon = document.getElementById('adminProfileIcon');
+        const adminProfilePopup = document.getElementById('adminProfilePopup');
+        const popupAdminId = document.getElementById('popupAdminId');
+        const popupAdminName = document.getElementById('popupAdminName');
+
+        // NEW Modal elements (for combined event/participant data)
+        const eventDetailsAndParticipantsModal = document.getElementById('eventDetailsAndParticipantsModal');
+        const closeEventDetailsAndParticipantsModal = document.getElementById('closeEventDetailsAndParticipantsModal');
+        const detailEventName = document.getElementById('detailEventName');
+        const detailEventTime = document.getElementById('detailEventTime');
+        const detailEventVenue = document.getElementById('detailEventVenue');
+        const detailEventDetails = document.getElementById('detailEventDetails');
+        const detailEventPhoto = document.getElementById('detailEventPhoto');
+        const participantsList = document.getElementById('participantsList');
+        const noParticipantsMessage = document.getElementById('noParticipantsMessage');
+
+        const messageBox = document.getElementById('messageBox'); // For the new global message box
+        const messageBoxText = document.getElementById('messageBoxText');
+
+        let simulatedEvents = []; // Stores fetched events for dropdowns
+
+        // Function to display messages (replaces alert/confirm)
+        function showMessageBox(message, type = 'info') {
+            messageBoxText.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-blue-500');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-500');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-500');
+            } else {
+                messageBox.classList.add('bg-blue-500');
+            }
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Admin Session Management ---
+        document.getElementById('adminLogoutLink').addEventListener('click', () => {
+            localStorage.removeItem('loggedInAdminUsername'); // Clear admin session
+            window.location.href = 'admin_login.html'; // Redirect to admin login page
+        });
+
+        // Check if admin is logged in on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const adminUsername = new URLSearchParams(window.location.search).get('username');
+            const storedAdminUsername = localStorage.getItem('loggedInAdminUsername');
+
+            if (!adminUsername || storedAdminUsername !== adminUsername) {
+                showMessageBox('Admin session invalid. Please log in again.', 'error');
+                setTimeout(() => window.location.href = 'admin_login.html', 2000);
+                return;
+            }
+            adminUsernameSpan.textContent = adminUsername;
+            
+            // Populate admin profile popup
+            popupAdminName.textContent = adminUsername;
+            popupAdminId.textContent = 'ADM-' + btoa(adminUsername).substring(0, 8).toUpperCase(); 
+
+            await fetchAllUsers(); // Fetch and populate the "Registered Users (All)" table
+            await fetchAndPopulateEvents(); // Fetch and populate event dropdowns
+        });
+
+        async function fetchAllUsers() {
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/admin/users`); 
+                const usersData = await response.json();
+
+                if (response.ok) {
+                    if (Array.isArray(usersData) && usersData.length > 0) {
+                        populateUsersTable(usersData);
+                    } else if (usersData.message && usersData.message === "No users found") {
+                        usersTableBody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No users found.</td></tr>';
+                        showMessageBox('No regular users registered yet.', 'info');
+                    } else {
+                        showMessageBox('Unexpected response format for user list.', 'error');
+                        usersTableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">Error loading users.</td></tr>';
+                    }
+                } else {
+                    showMessageBox(usersData.error || 'Failed to fetch user list.', 'error');
+                    console.error('Error fetching all users:', usersData.error);
+                    usersTableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">Error loading users.</td></td></tr>';
+                }
+            } catch (error) {
+                showMessageBox('Network error or server is unreachable. Could not load users.', 'error');
+                console.error('Fetch error:', error);
+                usersTableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">Network error.</td></tr>';
+            }
+        }
+
+        function populateUsersTable(users) {
+            usersTableBody.innerHTML = ''; // Clear existing rows
+            users.forEach(user => {
+                const row = usersTableBody.insertRow();
+                row.insertCell().textContent = user.id;
+                row.insertCell().textContent = user.first_name;
+                row.insertCell().textContent = user.last_name;
+                row.insertCell().textContent = user.phone_number;
+                row.insertCell().textContent = user.email_id;
+                row.insertCell().textContent = user.tower_number;
+                row.insertCell().textContent = user.wing;
+                row.insertCell().textContent = user.number;
+                row.insertCell().textContent = user.type_val;
+                row.insertCell().textContent = user.user_role;
+                row.insertCell().textContent = new Date(user.registered_on).toLocaleDateString();
+            });
+        }
+
+        async function fetchAndPopulateEvents() {
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/events`); // Proxy to event_api
+                const eventsData = await response.json();
+
+                if (response.ok) {
+                    if (Array.isArray(eventsData) && eventsData.length > 0) {
+                        simulatedEvents = eventsData; // Store fetched events
+                        populateEventDropdowns();
+                    } else if (eventsData.message && eventsData.message === "No events found") {
+                        simulatedEvents = []; // No events
+                        populateEventDropdowns(); // Still populate with default option
+                        showMessageBox('No events found in the database.', 'info');
+                    } else {
+                        showMessageBox('Unexpected response format for event list.', 'error');
+                        simulatedEvents = [];
+                    }
+                } else {
+                    showMessageBox(eventsData.error || 'Failed to fetch events.', 'error');
+                    console.error('Error fetching events:', eventsData.error);
+                    simulatedEvents = [];
+                }
+            } catch (error) {
+                showMessageBox('Network error or event service is unreachable. Could not load events.', 'error');
+                console.error('Fetch events error:', error);
+                simulatedEvents = [];
+            }
+        }
+
+        // Populate both Event Dropdowns
+        function populateEventDropdowns() {
+            eventSelect.innerHTML = '<option value="">-- Select an Event --</option>';
+            eventInfoSelect.innerHTML = '<option value="">-- Select an Event --</option>';
+
+            simulatedEvents.forEach(event => {
+                const optionReg = document.createElement('option');
+                optionReg.value = event.id;
+                optionReg.textContent = event.name;
+                eventSelect.appendChild(optionReg);
+
+                const optionInfo = document.createElement('option');
+                optionInfo.value = event.id;
+                optionInfo.textContent = event.name;
+                eventInfoSelect.appendChild(optionInfo);
+            });
+        }
+
+        // Toggle Event Form Visibility
+        toggleEventFormBtn.addEventListener('click', () => {
+            if (eventFormContainer.style.display === 'none' || eventFormContainer.style.display === '') {
+                eventFormContainer.style.display = 'block';
+                toggleEventFormBtn.textContent = 'Hide Event Form';
+            } else {
+                eventFormContainer.style.display = 'none';
+                toggleEventFormBtn.textContent = 'Add New Event';
+                document.getElementById('createEventForm').reset();
+                displayMessage(eventMessageDiv, '', ''); 
+                displayMessage(subscriptionMessageDiv, '', ''); 
+            }
+        });
+
+        // Event creation form submission handler
+        document.getElementById('createEventForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            displayMessage(eventMessageDiv, '', ''); // Clear previous messages
+
+            const eventName = document.getElementById('eventName').value;
+            const eventTime = document.getElementById('eventTime').value;
+            const eventCloseDate = document.getElementById('eventCloseDate').value;
+            const eventVenue = document.getElementById('eventVenue').value;
+            const eventDetails = document.getElementById('eventDetails').value;
+            const eventPhotoFile = document.getElementById('eventPhoto').files[0];
+
+            // Basic client-side validation for event form
+            if (!eventName || !eventTime || !eventCloseDate || !eventVenue || !eventDetails) {
+                displayMessage(eventMessageDiv, 'Please fill in all required event details, including the Subscription Close Date.', 'error');
+                return;
+            }
+
+            if (new Date(eventCloseDate) >= new Date(eventTime)) {
+                displayMessage(eventMessageDiv, 'Subscription Close Date must be before the Event Time.', 'error');
+                return;
+            }
+            
+            const subscriptionSettings = {
+                coverCharges: parseFloat(document.getElementById('coverCharges').value) || 0,
+                coverChargesType: document.getElementById('coverChargesType').value,
+                vegFoodCharges: parseFloat(document.getElementById('vegFoodCharges').value) || 0,
+                vegFoodChargesType: document.getElementById('vegFoodChargesType').value,
+                nonVegFoodCharges: parseFloat(document.getElementById('nonVegFoodCharges').value) || 0,
+                nonVegFoodChargesType: document.getElementById('nonVegFoodChargesType').value,
+                additionalCharges: parseFloat(document.getElementById('additionalCharges').value) || 0,
+                additionalChargesType: document.getElementById('additionalChargesType').value
+            };
+
+            if (isNaN(subscriptionSettings.coverCharges) || isNaN(subscriptionSettings.vegFoodCharges) || isNaN(subscriptionSettings.nonVegFoodCharges) || isNaN(subscriptionSettings.additionalCharges)) {
+                displayMessage(eventMessageDiv, 'Please enter valid numbers for all charges.', 'error');
+                return;
+            }
+
+            const eventData = {
+                name: eventName,
+                time: eventTime,
+                close_date: eventCloseDate,
+                venue: eventVenue,
+                details: eventDetails,
+                subscription: subscriptionSettings
+            };
+
+            const formData = new FormData();
+            formData.append('eventData', JSON.stringify(eventData)); 
+            if (eventPhotoFile) {
+                formData.append('eventPhoto', eventPhotoFile); 
+            }
+
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/events`, { 
+                    method: 'POST',
+                    body: formData 
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayMessage(eventMessageDiv, result.message || 'Event created successfully!', 'success');
+                    event.target.reset(); 
+                    await fetchAndPopulateEvents(); 
+                } else {
+                    displayMessage(eventMessageDiv, result.error || 'Failed to create event.', 'error');
+                    console.error('Error creating event:', result.error);
+                }
+            } catch (error) {
+                console.error('Error during event creation:', error);
+                displayMessage(eventMessageDiv, 'Network error or event service is unreachable.', 'error');
+            }
+        });
+
+        // Save Subscription Settings Button Handler (Now part of the Create Event form)
+        saveSubscriptionSettingsBtn.addEventListener('click', async () => {
+            displayMessage(subscriptionMessageDiv, '', '');
+
+            const subscriptionSettings = {
+                coverCharges: parseFloat(document.getElementById('coverCharges').value) || 0,
+                coverChargesType: document.getElementById('coverChargesType').value,
+                vegFoodCharges: parseFloat(document.getElementById('vegFoodCharges').value) || 0,
+                vegFoodChargesType: document.getElementById('vegFoodChargesType').value,
+                nonVegFoodCharges: parseFloat(document.getElementById('nonVegFoodCharges').value) || 0,
+                nonVegFoodChargesType: document.getElementById('nonVegFoodChargesType').value,
+                additionalCharges: parseFloat(document.getElementById('additionalCharges').value) || 0,
+                additionalChargesType: document.getElementById('additionalChargesType').value
+            };
+
+            if (isNaN(subscriptionSettings.coverCharges) || isNaN(subscriptionSettings.vegFoodCharges) || isNaN(subscriptionSettings.nonVegFoodCharges) || isNaN(subscriptionSettings.additionalCharges)) {
+                displayMessage(subscriptionMessageDiv, 'Please enter valid numbers for all charges.', 'error');
+                return;
+            }
+
+            try {
+                console.log('Simulating saving subscription settings:', subscriptionSettings);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const simulatedSuccess = true;
+
+                if (simulatedSuccess) {
+                    displayMessage(subscriptionMessageDiv, 'Subscription settings saved successfully! (Client-side)', 'success');
+                } else {
+                    displayMessage(subscriptionMessageDiv, 'Failed to save subscription settings. (Client-side)', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving subscription settings:', error);
+                displayMessage(subscriptionMessageDiv, 'An unexpected error occurred.', 'error');
+            }
+        });
+
+        // Show Event Info Button Handler
+        showEventInfoBtn.addEventListener('click', async () => {
+            const selectedEventId = eventInfoSelect.value;
+            eventInfoDisplay.style.display = 'none'; 
+            eventDetailsDisplayArea.innerHTML = ''; 
+            displayMessage(eventInfoMessage, '', ''); 
+
+            if (!selectedEventId) {
+                displayMessage(eventInfoMessage, 'Please select an event to view its information.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/events/${selectedEventId}`); 
+                const eventData = await response.json();
+
+                if (response.ok) {
+                    renderEventInfo(eventData);
+                    eventInfoDisplay.style.display = 'block'; 
+                } else {
+                    displayMessage(eventInfoMessage, eventData.error || 'Failed to fetch event information.', 'error');
+                    console.error('Error fetching event info:', eventData.error);
+                }
+            } catch (error) {
+                displayMessage(eventInfoMessage, 'Network error or event service is unreachable.', 'error');
+                console.error('Fetch event info error:', error);
+            }
+        });
+
+        function renderEventInfo(event) {
+            eventDetailsDisplayArea.innerHTML = `
+                <p><strong>Event Name:</strong> ${event.name}</p>
+                <p><strong>Event Time:</strong> ${new Date(event.time).toLocaleString()}</p>
+                <p><strong>Subscription Close Date:</strong> ${new Date(event.close_date).toLocaleString()}</p>
+                <p><strong>Event Venue:</strong> ${event.venue}</p>
+                <p><strong>Event Details:</strong> ${event.details}</p>
+                ${event.photo_url ? `<p><strong>Event Photo:</strong></p><img src="${event.photo_url}" alt="${event.name} Photo">` : '<p><strong>Event Photo:</strong> Not provided</p>'}
+                <h5 style="margin-top: 20px; margin-bottom: 10px;">Subscription Details:</h5>
+                <p><strong>Cover Charges:</strong> ${event.subscription.coverCharges} ${event.subscription.coverChargesType.replace('_', ' ')}</p>
+                <p><strong>Veg Food Charges:</strong> ${event.subscription.vegFoodCharges} ${event.subscription.vegFoodChargesType.replace('_', ' ')}</p>
+                <p><strong>Non-Veg Food Charges:</strong> ${event.subscription.nonVegFoodCharges} ${event.subscription.nonVegFoodChargesType.replace('_', ' ')}</p>
+                <p><strong>Additional Charges:</strong> ${event.subscription.additionalCharges} ${event.subscription.additionalChargesType.replace('_', ' ')}</p>
+            `;
+        }
+
+        // Show Event Registrations Button Handler (Now opens the new modal)
+        showEventRegistrationsBtn.addEventListener('click', () => {
+            const selectedEventId = eventSelect.value;
+            if (!selectedEventId) {
+                showMessageBox('Please select an event to view registrations.', 'error');
+                eventUsersTableContainer.style.display = 'none'; // Keep old table hidden
+                return;
+            }
+            // Call the new modal function to display combined data
+            openEventDetailsAndParticipantsModal(selectedEventId);
+            eventUsersTableContainer.style.display = 'none'; // Ensure the old table is hidden
+        });
+
+        // Old populateEventUsersTable is no longer directly used by showEventRegistrationsBtn
+        // but kept for reference if needed elsewhere.
+        function populateEventUsersTable(users) {
+            eventUsersTableBody.innerHTML = ''; 
+            noEventUsersMessage.style.display = 'none'; 
+
+            if (users && users.length > 0) {
+                users.forEach(user => {
+                    const row = eventUsersTableBody.insertRow();
+                    row.insertCell().textContent = user.id;
+                    row.insertCell().textContent = user.first_name;
+                    row.insertCell().textContent = user.last_name;
+                    row.insertCell().textContent = user.phone_number;
+                    row.insertCell().textContent = user.email_id;
+                });
+            } else {
+                noEventUsersMessage.textContent = 'No users registered for this event yet.';
+                noEventUsersMessage.style.display = 'block';
+            }
+        }
+
+        // Toggle Admin Profile Pop-up
+        adminProfileIcon.addEventListener('click', (event) => {
+            event.stopPropagation(); 
+            if (adminProfilePopup.style.display === 'block') {
+                adminProfilePopup.style.display = 'none';
+            } else {
+                adminProfilePopup.style.display = 'block';
+            }
+        });
+
+        // Close pop-up if clicked outside
+        document.addEventListener('click', (event) => {
+            if (!adminProfilePopup.contains(event.target) && !adminProfileIcon.contains(event.target)) {
+                adminProfilePopup.style.display = 'none';
+            }
+        });
+
+        // Close new Event Details and Participants Modal
+        closeEventDetailsAndParticipantsModal.addEventListener('click', () => {
+            eventDetailsAndParticipantsModal.style.display = 'none';
+        });
+
+        // NEW: Function to open and populate the combined event details and participants modal
+        async function openEventDetailsAndParticipantsModal(eventId) {
+            participantsList.innerHTML = ''; // Clear previous participants
+            noParticipantsMessage.classList.add('hidden'); // Hide message initially
+
+            try {
+                const response = await fetch(`${APP_FRONTEND_URL}/api/admin/event-details/${eventId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const event = data.event;
+                    const participants = data.participants;
+
+                    // Populate Event Details section
+                    detailEventName.textContent = event.name;
+                    detailEventTime.textContent = new Date(event.time).toLocaleString();
+                    detailEventVenue.textContent = event.venue;
+                    detailEventDetails.textContent = event.details;
+                    if (event.photo_url) {
+                        detailEventPhoto.src = event.photo_url;
+                        detailEventPhoto.classList.remove('hidden');
+                    } else {
+                        detailEventPhoto.classList.add('hidden');
+                    }
+
+                    // Populate Participants List
+                    if (participants && participants.length > 0) {
+                        participants.forEach(p => {
+                            const user = p.user_details;
+                            const participation = p.participation_details;
+
+                            const participantCard = document.createElement('div');
+                            participantCard.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200';
+                            participantCard.innerHTML = `
+                                <h5 class="text-lg font-semibold text-gray-800">${user.first_name || 'N/A'} ${user.last_name || 'N/A'}</h5>
+                                <p class="text-gray-600 text-sm"><strong>Phone:</strong> ${user.phone_number || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm"><strong>Email:</strong> ${user.email_id || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm"><strong>Flat:</strong> ${user.flat_details || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm"><strong>Veg Attendees:</strong> ${participation.num_veg_attendees}</p>
+                                <p class="text-gray-600 text-sm"><strong>Non-Veg Attendees:</strong> ${participation.num_non_veg_attendees}</p>
+                                <p class="text-gray-600 text-sm"><strong>Contribution:</strong> ₹${participation.contribution.toFixed(2)}</p>
+                                <p class="text-gray-600 text-sm"><strong>Total Paid:</strong> ₹${participation.current_payment_amount.toFixed(2)}</p>
+                                <p class="text-gray-600 text-sm"><strong>Status:</strong> <span class="font-medium ${participation.status === 'paid' ? 'text-green-600' : 'text-yellow-600'}">${participation.status}</span></p>
+                            `;
+                            participantsList.appendChild(participantCard);
+                        });
+                    } else {
+                        noParticipantsMessage.classList.remove('hidden');
+                    }
+
+                    eventDetailsAndParticipantsModal.style.display = 'flex'; // Show the modal
+                } else {
+                    showMessageBox(data.error || 'Failed to load event details and participants.', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching combined event data:', error);
+                showMessageBox('Network error or server is unreachable. Could not load event details and participants.', 'error');
+            }
+        }
+
+        // Close modals if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target == eventDetailsAndParticipantsModal) {
+                eventDetailsAndParticipantsModal.style.display = 'none';
+            }
+        });
+
+        // Old displayMessage function (kept for compatibility with existing code)
+        function displayMessage(messageDivElement, message, type) {
+            messageDivElement.textContent = message;
+            messageDivElement.className = `message ${type}`;
+            messageDivElement.style.display = 'block';
+            setTimeout(() => {
+                messageDivElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

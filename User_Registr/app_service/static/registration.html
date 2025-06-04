@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"], /* Added for flat number */
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Register New User</h2>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="middle_name">Middle Name (Optional):</label>
+                <input type="text" id="middle_name" name="middle_name">
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" name="phone_number" pattern="^\d{10}$" title="Must be a 10-digit number" required>
+            </div>
+            <div class="form-group">
+                <label for="email_id">Email ID:</label>
+                <input type="email" id="email_id" name="email_id" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password (max 6 alphanumeric):</label>
+                <input type="password" id="password" name="password" maxlength="6" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tower_number">Tower Number:</label>
+                <select id="tower_number" name="tower_number" required>
+                    <option value="">Select Tower</option>
+                    <option value="Alpine1">Alpine1</option>
+                    <option value="Alpine2">Alpine2</option>
+                    <option value="Alpine3">Alpine3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="wing">Wing:</label>
+                <select id="wing" name="wing" required>
+                    <option value="">Select Wing</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="NA">N/A</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="number">Flat Number (1-12):</label>
+                <input type="number" id="number" name="number" min="1" max="12" required>
+            </div>
+
+            <div class="form-group">
+                <label for="user_role">User Type:</label>
+                <select id="user_role" name="user_role" required>
+                    <option value="">Select User Type</option>
+                    <option value="Tenant">Tenant</option>
+                    <option value="Owner">Owner</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="type_val">Flat Type:</label>
+                <select id="type_val" name="type_val" required>
+                    <option value="">Select Flat Type</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+
+            <button type="submit">Register</button>
+            <div id="message" class="message" style="display: none;"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none'; // Hide previous messages
+            messageDiv.className = 'message'; // Reset message classes
+
+            const formData = {
+                first_name: document.getElementById('first_name').value,
+                middle_name: document.getElementById('middle_name').value || null, // Optional field
+                last_name: document.getElementById('last_name').value,
+                phone_number: document.getElementById('phone_number').value,
+                email_id: document.getElementById('email_id').value,
+                password: document.getElementById('password').value,
+                tower_number: document.getElementById('tower_number').value,
+                wing: document.getElementById('wing').value,
+                number: document.getElementById('number').value, // This will be a string
+                type_val: document.getElementById('type_val').value, // Now Flat Type
+                user_role: document.getElementById('user_role').value // New User Role
+            };
+
+            // --- Client-Side Validation ---
+
+            // Check for empty required fields
+            const requiredFields = ['first_name', 'last_name', 'phone_number', 'email_id', 'password',
+                                    'tower_number', 'wing', 'number', 'type_val', 'user_role'];
+            for (const field of requiredFields) {
+                if (!formData[field]) { // Checks for empty string or null
+                    messageDiv.textContent = `Please fill in the ${field.replace('_', ' ')} field.`;
+                    messageDiv.classList.add('error');
+                    messageDiv.style.display = 'block';
+                    return;
+                }
+            }
+
+            // Phone Number Validation (10 digits)
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(formData.phone_number)) {
+                messageDiv.textContent = 'Phone number must be a 10-digit number.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // Email ID Validation
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(formData.email_id)) {
+                messageDiv.textContent = 'Please enter a valid email ID.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // Password Validation (max 6 alphanumeric)
+            const password = formData.password;
+            if (password.length > 6 || !/^[a-zA-Z0-9]*$/.test(password) || password.length === 0) {
+                messageDiv.textContent = 'Password must be alphanumeric and 1 to 6 characters long.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // Flat Number Validation (1-12)
+            const flatNumber = parseInt(formData.number);
+            if (isNaN(flatNumber) || flatNumber < 1 || flatNumber > 12) {
+                messageDiv.textContent = 'Flat number must be between 1 and 12.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // User Role Validation (Tenant, Owner)
+            const allowedUserRoles = ["Tenant", "Owner"];
+            if (!allowedUserRoles.includes(formData.user_role)) {
+                messageDiv.textContent = 'Please select a valid User Type (Tenant or Owner).';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // Flat Type Validation (A, B, C, D)
+            const allowedFlatTypes = ["A", "B", "C", "D"];
+            if (!allowedFlatTypes.includes(formData.type_val)) {
+                messageDiv.textContent = 'Please select a valid Flat Type (A, B, C, or D).';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // --- End Client-Side Validation ---
+
+            try {
+                const response = await fetch('/register', { // Use relative path to app-service's /register endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) { // Check if status code is 2xx (e.g., 201 Created)
+                    messageDiv.textContent = result.message || 'Registration successful!';
+                    messageDiv.classList.add('success');
+                    messageDiv.style.display = 'block';
+                    // Redirect directly to the success page
+                    setTimeout(() => {
+                        window.location.href = 'register-success.html';
+                    }, 2000); // Redirect after 2 seconds
+                } else {
+                    // Backend validation errors will be caught here
+                    messageDiv.textContent = result.error || 'Registration failed due to an unknown error.';
+                    messageDiv.classList.add('error');
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+                messageDiv.textContent = 'Network error or server is unreachable. Please ensure the Flask app is running.';
+                messageDiv.classList.add('error');
+                messageDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

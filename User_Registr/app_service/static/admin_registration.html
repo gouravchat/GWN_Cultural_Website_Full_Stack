@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .login-link {
+            display: block;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+        .login-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Registration</h2>
+        <form id="adminRegistrationForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email_id">Email ID:</label>
+                <input type="email" id="email_id" name="email_id" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password (max 6 alphanumeric):</label>
+                <input type="password" id="password" name="password" maxlength="6" required>
+            </div>
+            <button type="submit">Register Admin</button>
+            <div id="message" class="message" style="display: none;"></div>
+        </form>
+        <div class="login-link">
+            Already an admin? <a href="admin_login.html">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminRegistrationForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            messageDiv.className = 'message';
+
+            const formData = {
+                username: document.getElementById('username').value,
+                email_id: document.getElementById('email_id').value,
+                password: document.getElementById('password').value
+            };
+
+            // Client-side validation
+            if (!formData.username || !formData.email_id || !formData.password) {
+                displayMessage('All fields are required.', 'error');
+                return;
+            }
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(formData.email_id)) {
+                displayMessage('Please enter a valid email ID.', 'error');
+                return;
+            }
+            if (formData.password.length > 6 || !/^[a-zA-Z0-9]*$/.test(formData.password) || formData.password.length === 0) {
+                displayMessage('Password must be alphanumeric and 1 to 6 characters long.', 'error');
+                return;
+            }
+
+            console.log('Attempting to fetch /admin/register...'); // Debug Log 1
+
+            try {
+                const response = await fetch('/admin/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Fetch response received. Status:', response.status, 'OK status:', response.ok); // Debug Log 2
+
+                const result = await response.json();
+                console.log('Response JSON parsed:', result); // Debug Log 3
+
+                if (response.ok) {
+                    console.log('Inside response.ok block. Displaying success message and redirecting.'); // Debug Log 4
+                    displayMessage(result.message || 'Admin registered successfully! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        console.log('Redirecting now...'); // Debug Log 5
+                        window.location.href = 'admin_login.html';
+                    }, 2000);
+                } else {
+                    console.log('Inside else block. Displaying error message.'); // Debug Log 6
+                    displayMessage(result.error || 'Admin registration failed.', 'error');
+                }
+            } catch (error) {
+                console.error('Error during admin registration (catch block):', error); // Debug Log 7
+                displayMessage('Network error or server is unreachable.', 'error');
+            }
+        });
+
+        function displayMessage(message, type) {
+            console.log('displayMessage called with:', message, type); // Debug Log 8
+            const messageDiv = document.getElementById('message'); // Ensure messageDiv is accessible here
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

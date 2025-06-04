@@ -1,0 +1,111 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  db_api:
+    build: ./app_db
+    container_name: db_api_container
+    ports:
+      - "5001:5001"
+    volumes:
+      - db_data:/app/db_data
+    environment:
+      - FLASK_DEBUG=1
+    networks:
+      - app-network
+
+  auth_api:
+    build: ./app_auth
+    container_name: auth_api_container
+    ports:
+      - "5002:5002"
+    environment:
+      - DB_API_URL=http://db_api:5001
+      - FLASK_DEBUG=1
+    depends_on:
+      - db_api
+    networks:
+      - app-network
+
+  admin_db_api:
+    build: ./app_admin_db
+    container_name: admin_db_api_container
+    ports:
+      - "5004:5004"
+    volumes:
+      - admin_db_data:/app/admin_db_data
+    environment:
+      - FLASK_DEBUG=1
+    networks:
+      - app-network
+
+  admin_api:
+    build: ./app_admin
+    container_name: admin_api_container
+    ports:
+      - "5003:5003"
+    environment:
+      - ADMIN_DB_API_URL=http://admin_db_api:5004
+      - FLASK_DEBUG=1
+    depends_on:
+      - admin_db_api
+    networks:
+      - app-network
+
+  events_api:
+    build: ./app_events
+    container_name: events_api_container
+    ports:
+      - "5005:5005"
+    volumes:
+      - events_data:/app/event_data
+    environment:
+      - FLASK_DEBUG=1
+    networks:
+      - app-network
+
+  participation_api: # NEW Participation Service
+    build: ./app_user_participation
+    container_name: participation_api_container
+    ports:
+      - "5006:5006" # Expose new port
+    volumes:
+      - participation_data:/app/participation_data # Persist participation data
+    environment:
+      - FLASK_DEBUG=1
+    depends_on:
+      - db_api # Participation might need user/event data from other services
+      - events_api # Participation needs event data
+    networks:
+      - app-network
+
+  app_frontend:
+    build: ./app_service
+    container_name: app_frontend_container
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_API_URL=http://db_api:5001
+      - AUTH_API_URL=http://auth_api:5002
+      - ADMIN_API_URL=http://admin_api:5003
+      - EVENTS_API_URL=http://events_api:5005
+      - PARTICIPATION_API_URL=http://participation_api:5006 # NEW: Frontend needs to talk to Participation service
+      - FLASK_DEBUG=1
+    depends_on:
+      - db_api
+      - auth_api
+      - admin_api
+      - events_api
+      - participation_api # NEW: Frontend depends on Participation service
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+  admin_db_data:
+  events_data:
+  participation_data: # NEW volume for participation data
+
+networks:
+  app-network:
+    driver: bridge
