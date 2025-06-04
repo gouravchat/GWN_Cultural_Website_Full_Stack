@@ -99,6 +99,14 @@ services:
       - participation_api # NEW: Frontend depends on Participation service
     networks:
       - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
   db_data:
