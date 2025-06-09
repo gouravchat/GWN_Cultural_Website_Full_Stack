@@ -2,7 +2,6 @@ import os
 import requests
 from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, session, url_for
 from bcrypt import hashpw, gensalt, checkpw
-import random
 
 app = Flask(__name__)
 
@@ -120,7 +119,6 @@ def register_user():
     email = data.get('email')
     phone_number = data.get('phone_number')
     password = data.get('password')
-    otp = data.get('otp')
 
     if not all([username, email, phone_number, password]):
         return jsonify({"error": "All fields are required."}), 400

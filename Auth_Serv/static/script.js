@@ -14,15 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const emailInput = document.getElementById('email');
     const phoneNumberInput = document.getElementById('phone_number');
     const passwordInput = document.getElementById('password');
-    const otpInput = document.getElementById('otp');
 
     // Field containers
     const loginFields = document.querySelectorAll('.login-field');
-    const registerFields = document.querySelectorAll('.register-field');
-
-    // OTP related elements
-    const sendOtpButton = document.getElementById('sendOtpButton');
-    const otpGroup = document.getElementById('otp-group');
+    const registerFields = a= document.querySelectorAll('.register-field');
 
     // --- State ---
     let isLoginMode = true;
@@ -50,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function () {
             usernameInput.required = false;
             emailInput.required = false;
             phoneNumberInput.required = false;
-            otpInput.required = false;
 
         } else {
             // Setup for Register mode
@@ -61,68 +55,20 @@ document.addEventListener('DOMContentLoaded', function () {
             
             loginFields.forEach(field => field.style.display = 'none');
             registerFields.forEach(field => {
-                // Show all register fields except the OTP group initially
-                if (field.id !== 'otp-group') {
-                    field.style.display = 'block';
-                }
+                field.style.display = 'block';
             });
-            sendOtpButton.style.display = 'block'; // Show Send OTP button
-            otpGroup.style.display = 'none'; // Hide OTP field initially
             
             // Set required attributes for registration
             identifierInput.required = false;
             usernameInput.required = true;
             emailInput.required = true;
             phoneNumberInput.required = true;
-            otpInput.required = true; // Will be validated on submit
         }
         
         // Clear previous messages and reset form state
         messageElement.textContent = '';
         messageElement.className = 'message';
         authForm.reset();
-    }
-
-    /**
-     * Handles the click event for the 'Send OTP' button.
-     */
-    async function handleSendOtp() {
-        const phoneNumber = phoneNumberInput.value.trim();
-        if (!phoneNumber) {
-            messageElement.textContent = 'Please enter a phone number to receive an OTP.';
-            messageElement.className = 'message error';
-            return;
-        }
-
-        sendOtpButton.disabled = true;
-        sendOtpButton.textContent = 'Sending...';
-        messageElement.textContent = '';
-        messageElement.className = 'message';
-
-        try {
-            const response = await fetch('/send-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone_number: phoneNumber })
-            });
-            const data = await response.json();
-            
-            if (response.ok) {
-                messageElement.textContent = data.message;
-                messageElement.className = 'message success';
-                otpGroup.style.display = 'block'; // Show the OTP input field
-            } else {
-                messageElement.textContent = 'Error: ' + data.error;
-                messageElement.className = 'message error';
-            }
-        } catch (error) {
-            console.error('Error sending OTP:', error);
-            messageElement.textContent = 'An network error occurred while sending OTP.';
-            messageElement.className = 'message error';
-        } finally {
-            sendOtpButton.disabled = false;
-            sendOtpButton.textContent = 'Send OTP';
-        }
     }
 
     /**
@@ -149,8 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 username: usernameInput.value.trim(),
                 email: emailInput.value.trim(),
                 phone_number: phoneNumberInput.value.trim(),
-                password: passwordInput.value,
-                otp: otpInput.value.trim()
+                password: passwordInput.value
             };
         }
 
@@ -190,10 +135,11 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleMode();
     });
 
-    sendOtpButton.addEventListener('click', handleSendOtp);
     authForm.addEventListener('submit', handleFormSubmit);
 
     // --- Initial Setup ---
-    toggleMode(); // Call once to set the initial state to login
-    toggleMode(); // Call again to reset to the correct initial state and clear form
+    // Set the initial state to login
+    loginFields.forEach(field => field.style.display = 'block');
+    registerFields.forEach(field => field.style.display = 'none');
+    identifierInput.required = true;
 });
