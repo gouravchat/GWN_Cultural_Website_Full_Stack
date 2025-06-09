@@ -1,7 +1,8 @@
 import os
 import requests
-from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, session # Added redirect and session
+from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, session, url_for
 from bcrypt import hashpw, gensalt, checkpw
+import random
 
 app = Flask(__name__)
 
@@ -11,7 +12,6 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_default_very_secret_ke
 DB_API_URL = os.environ.get('DB_API_URL', 'http://localhost:5004')
 
 # Define redirect URLs. These should ideally come from environment variables.
-# USER_PORTAL_URL should point to the base of the user-specific path on the User Portal Service
 USER_PORTAL_URL_AFTER_LOGIN = os.environ.get('USER_PORTAL_URL', 'http://localhost:5001/portal') # e.g., http://host:port/portal
 ADMIN_PORTAL_URL_AFTER_LOGIN = os.environ.get('ADMIN_PORTAL_URL', 'http://localhost:5001/') # Admin Portal root, as per docker-compose for admin-portal-service
 
@@ -112,6 +112,7 @@ def login():
         app.logger.error(f"An unexpected error occurred during login: {e}")
         return jsonify({"error": "An internal server error occurred during login."}), 500
 
+
 @app.route('/register', methods=['POST'])
 def register_user():
     data = request.get_json()
@@ -119,9 +120,11 @@ def register_user():
     email = data.get('email')
     phone_number = data.get('phone_number')
     password = data.get('password')
+    otp = data.get('otp')
 
-    if not username or not email or not phone_number or not password:
-        return jsonify({"error": "Username, email, phone number, and password are required."}), 400
+    if not all([username, email, phone_number, password]):
+        return jsonify({"error": "All fields are required."}), 400
+    
     if not "@" in email:
         return jsonify({"error": "Invalid email format."}), 400
     

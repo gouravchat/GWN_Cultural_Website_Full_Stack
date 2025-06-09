@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nest Alpine Cultural Society</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Add Animate.css for more vibrant animations -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         body {
@@ -90,72 +87,54 @@
             backdrop-filter: blur(8px);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
         }
-        /* Responsive font for hero */
-        .hero-title {
-            font-size: 2.5rem;
-        }
-        @media (min-width: 768px) {
-            .hero-title {
-                font-size: 4rem;
-            }
-        }
-        @media (min-width: 1024px) {
-            .hero-title {
-                font-size: 5rem;
-            }
-        }
+        /* Responsive font for hero is now handled by Tailwind classes */
     </style>
 </head>
 <body class="text-gray-800 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 min-h-screen">
-    <!-- Header -->
-    <header class="bg-white/80 shadow-sm py-5 px-6 md:px-16 sticky top-0 z-50 border-b border-gray-100 backdrop-blur-md">
+    <header class="bg-white/80 shadow-sm py-4 px-4 sm:px-6 md:px-16 sticky top-0 z-50 border-b border-gray-100 backdrop-blur-md">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="#" class="text-3xl font-extrabold text-green-700 rounded-lg p-2 hover:text-green-800 transition duration-300">Nest Alpine Cultural Society</a>
-            <nav class="hidden md:flex space-x-10">
-                <a href="#home" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Home</a>
-                <a href="#about" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">About</a>
-                <a href="#events" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Events</a>
-                <a href="#gallery" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Gallery</a>
-                <a href="#contact" class="text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Contact</a>
-                <!-- Portal Links -->
-                <a href="{{ auth_service_login_url }}" id="userPortalLinkHeader" class="text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">User Portal</a>
-                <a href="{{ auth_service_login_url }}?target=admin" id="adminPortalLinkHeader" class="text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">Admin Portal</a>
+            <a href="#" class="text-xl sm:text-2xl font-extrabold text-green-700 rounded-lg p-2 hover:text-green-800 transition duration-300">Nest Alpine Cultural Society</a>
+            <nav class="hidden md:flex space-x-6 lg:space-x-10">
+                <a href="#home" class="text-base lg:text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Home</a>
+                <a href="#about" class="text-base lg:text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">About</a>
+                <a href="#events" class="text-base lg:text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Events</a>
+                <a href="#gallery" class="text-base lg:text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Gallery</a>
+                <a href="#contact" class="text-base lg:text-lg text-gray-700 hover:text-green-600 font-medium transition duration-300 rounded-md py-2 px-3">Contact</a>
+                <a href="{{ auth_service_login_url }}" id="userPortalLinkHeader" class="text-base lg:text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">User Portal</a>
+                <a href="{{ auth_service_login_url }}?target=admin" id="adminPortalLinkHeader" class="text-base lg:text-lg text-green-700 hover:text-green-800 font-semibold transition duration-300 rounded-md py-2 px-3 bg-green-50 bg-opacity-70">Admin Portal</a>
             </nav>
-            <!-- Mobile Menu Button -->
             <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
-                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>
         </div>
-        <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-white bg-opacity-95 z-40 flex flex-col items-center justify-center space-y-8">
+        <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-white bg-opacity-95 z-40 flex flex-col items-center justify-center space-y-8 overflow-y-auto">
             <button id="close-mobile-menu" class="absolute top-8 right-8 text-gray-700 focus:outline-none">
                 <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
-            <a href="#home" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Home</a>
-            <a href="#about" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300">About</a>
-            <a href="#events" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Events</a>
-            <a href="#gallery" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Gallery</a>
-            <a href="#contact" class="text-4xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Contact</a>
-            <a href="{{ auth_service_login_url }}" id="userPortalLinkMobile" class="text-4xl text-green-700 hover:text-green-800 font-semibold transition duration-300">User Portal</a>
-            <a href="{{ auth_service_login_url }}?target=admin" id="adminPortalLinkMobile" class="text-4xl text-green-700 hover:text-green-800 font-semibold transition duration-300">Admin Portal</a>
+            <a href="#home" class="text-3xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Home</a>
+            <a href="#about" class="text-3xl text-gray-700 hover:text-green-600 font-medium transition duration-300">About</a>
+            <a href="#events" class="text-3xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Events</a>
+            <a href="#gallery" class="text-3xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Gallery</a>
+            <a href="#contact" class="text-3xl text-gray-700 hover:text-green-600 font-medium transition duration-300">Contact</a>
+            <a href="{{ auth_service_login_url }}" id="userPortalLinkMobile" class="text-3xl text-green-700 hover:text-green-800 font-semibold transition duration-300">User Portal</a>
+            <a href="{{ auth_service_login_url }}?target=admin" id="adminPortalLinkMobile" class="text-3xl text-green-700 hover:text-green-800 font-semibold transition duration-300">Admin Portal</a>
         </div>
     </header>
 
     <main>
-        <!-- Hero Section -->
         <section id="home" class="relative hero-bg text-white py-24 md:py-40 flex items-center justify-center min-h-screen overflow-hidden">
-            <div class="container mx-auto text-center px-8 z-10">
-                <h1 class="hero-title font-black leading-tight mb-8 animate__animated animate__fadeInDown">
+            <div class="container mx-auto text-center px-4 sm:px-8 z-10">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-8 animate__animated animate__fadeInDown">
                     Experience Culture. <span class="text-yellow-200 animate__animated animate__pulse animate__infinite">Connect Community.</span>
                 </h1>
-                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto opacity-90 animate__animated animate__fadeInUp animate__delay-1s">
+                <p class="text-lg md:text-xl lg:text-2xl mb-12 max-w-4xl mx-auto opacity-90 animate__animated animate__fadeInUp animate__delay-1s">
                     The Greenwood Nest Cultural Club is where traditions thrive and new stories begin.
                 </p>
-                <a href="#events" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-10 py-5 rounded-full text-xl font-semibold shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__fadeInUp animate__delay-2s">
+                <a href="#events" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-8 py-4 md:px-10 md:py-5 rounded-full text-lg md:text-xl font-semibold shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__fadeInUp animate__delay-2s">
                     Discover Events
                 </a>
             </div>
@@ -164,15 +143,14 @@
             <div class="absolute bottom-10 right-10 w-40 h-40 bg-green-300 rounded-full opacity-20 animate-pulse"></div>
         </section>
 
-        <!-- About Section -->
-        <section id="about" class="py-20 md:py-32 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">About Our Club</h2>
+        <section id="about" class="py-20 md:py-32 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">About Our Club</h2>
                 <div class="flex flex-col md:flex-row items-center md:space-x-16">
                     <div class="md:w-1/2 mb-12 md:mb-0 animate__animated animate__zoomIn glass p-4 rounded-2xl">
                         <img src="https://placehold.co/700x500/a3e635/ffffff?text=Cultural+Gathering" alt="Cultural Gathering" class="rounded-2xl shadow-xl w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Not+Found';">
                     </div>
-                    <div class="md:w-1/2 text-xl leading-relaxed text-gray-700 animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="md:w-1/2 text-lg leading-relaxed text-gray-700 animate__animated animate__fadeInUp animate__delay-1s">
                         <p class="mb-8">
                             The Greenwood Nest Cultural Club is a vibrant community dedicated to celebrating and preserving the rich tapestry of cultural expressions. We believe in creating a space where creativity flourishes, traditions are honored, and meaningful connections are forged through shared experiences.
                         </p>
@@ -187,98 +165,92 @@
             </div>
         </section>
 
-        <!-- Events Section -->
-        <section id="events" class="py-20 md:py-32 bg-white gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">Upcoming Events</h2>
-                <div id="events-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                    <!-- Events will be loaded here by JavaScript -->
-                </div>
+        <section id="events" class="py-20 md:py-32 bg-white gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">Upcoming Events</h2>
+                <div id="events-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                    </div>
                 <div id="events-loading" class="text-center text-lg text-gray-500 mt-8">Loading events...</div>
                 <div id="events-error" class="text-center text-lg text-red-500 mt-8 hidden">Could not load events. Please try again later.</div>
             </div>
         </section>
 
-        <!-- Gallery Section -->
-        <section id="gallery" class="py-20 md:py-32 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">Our Gallery</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        <section id="gallery" class="py-20 md:py-32 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">Our Gallery</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass">
-                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Annual+Festivities" alt="Event Highlight 1" class="w-full h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Annual+Festivities" alt="Event Highlight 1" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
                         <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <p class="text-white text-2xl font-semibold">Annual Festivities</p>
+                            <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Annual Festivities</p>
                         </div>
                     </div>
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass delay-100">
-                        <img src="https://placehold.co/700x500/facc15/ffffff?text=Community+Gathering" alt="Event Highlight 2" class="w-full h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        <img src="https://placehold.co/700x500/facc15/ffffff?text=Community+Gathering" alt="Event Highlight 2" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
                         <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <p class="text-white text-2xl font-semibold">Community Gathering</p>
+                            <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Community Gathering</p>
                         </div>
                     </div>
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass delay-200">
-                        <img src="https://placehold.co/700x500/f472b6/ffffff?text=Art+Workshop" alt="Event Highlight 3" class="w-full h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        <img src="https://placehold.co/700x500/f472b6/ffffff?text=Art+Workshop" alt="Event Highlight 3" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
                         <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <p class="text-white text-2xl font-semibold">Art Workshop</p>
+                            <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Art Workshop</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- User Portal Section -->
-        <section id="user-portal" class="py-20 md:py-32 bg-white gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16 text-center animate__animated animate__fadeInUp">
-                <h2 class="text-4xl md:text-5xl font-bold text-green-700 mb-12">User Portal</h2>
-                <p class="text-xl mb-10 max-w-3xl mx-auto text-gray-700">
+        <section id="user-portal" class="py-20 md:py-32 bg-white gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16 text-center animate__animated animate__fadeInUp">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-green-700 mb-12">User Portal</h2>
+                <p class="text-lg md:text-xl mb-10 max-w-3xl mx-auto text-gray-700">
                     Welcome to your personalized portal! Manage your membership, explore exclusive content, register for upcoming events, and connect seamlessly with fellow club members.
                 </p>
-                <a href="{{ auth_service_login_url }}" id="userDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-10 py-5 rounded-full text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
+                <a href="{{ auth_service_login_url }}" id="userDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-8 py-4 md:px-10 md:py-5 rounded-full text-lg md:text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
                     Go to User Dashboard
                 </a>
             </div>
         </section>
 
-        <!-- Admin Portal Section -->
-        <section id="admin-portal" class="py-20 md:py-32 bg-gray-50 gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16 text-center animate__animated animate__fadeInUp">
-                <h2 class="text-4xl md:text-5xl font-bold text-green-700 mb-12">Admin Portal</h2>
-                <p class="text-xl mb-10 max-w-3xl mx-auto text-gray-700">
+        <section id="admin-portal" class="py-20 md:py-32 bg-gray-50 gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16 text-center animate__animated animate__fadeInUp">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-green-700 mb-12">Admin Portal</h2>
+                <p class="text-lg md:text-xl mb-10 max-w-3xl mx-auto text-gray-700">
                     This secure portal is exclusively for authorized administrators. Efficiently manage events, oversee member registrations, and control club resources with ease.
                 </p>
-                <a href="{{ auth_service_login_url }}?target=admin" id="adminDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-10 py-5 rounded-full text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
+                <a href="{{ auth_service_login_url }}?target=admin" id="adminDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-8 py-4 md:px-10 md:py-5 rounded-full text-lg md:text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
                     Access Admin Dashboard
                 </a>
             </div>
         </section>
 
-        <!-- Contact Section -->
-        <section id="contact" class="py-20 md:py-32 bg-gradient-to-br from-green-700 to-green-900 text-white gradient-border rounded-3xl mx-4 md:mx-16 my-8 shadow-xl">
-            <div class="container mx-auto px-8 md:px-16 text-center animate__animated animate__fadeInUp">
-                <h2 class="text-4xl md:text-5xl font-bold mb-16">Get in Touch</h2>
-                <p class="text-xl mb-12 max-w-3xl mx-auto opacity-90">
+        <section id="contact" class="py-20 md:py-32 bg-gradient-to-br from-green-700 to-green-900 text-white gradient-border rounded-3xl mx-4 md:mx-16 my-12 md:my-16 shadow-xl">
+            <div class="container mx-auto px-6 sm:px-8 md:px-16 text-center animate__animated animate__fadeInUp">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-16">Get in Touch</h2>
+                <p class="text-lg md:text-xl mb-12 max-w-3xl mx-auto opacity-90">
                     Have questions, suggestions, or eager to join our community? We'd love to hear from you! Reach out through the form below or directly via contact details.
                 </p>
-                <div class="max-w-2xl mx-auto glass p-10 rounded-2xl shadow-xl text-gray-800">
-                    <form action="#" method="POST" class="space-y-8">
+                <div class="max-w-2xl mx-auto glass p-6 sm:p-10 rounded-2xl shadow-xl text-gray-800">
+                    <form action="#" method="POST" class="space-y-6">
                         <div>
                             <label for="name" class="block text-left text-base font-medium text-gray-700 mb-2">Name</label>
-                            <input type="text" id="name" name="name" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="Your Full Name" required>
+                            <input type="text" id="name" name="name" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-base" placeholder="Your Full Name" required>
                         </div>
                         <div>
                             <label for="email" class="block text-left text-base font-medium text-gray-700 mb-2">Email</label>
-                            <input type="email" id="email" name="email" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="your.email@example.com" required>
+                            <input type="email" id="email" name="email" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-base" placeholder="your.email@example.com" required>
                         </div>
                         <div>
                             <label for="message" class="block text-left text-base font-medium text-gray-700 mb-2">Message</label>
-                            <textarea id="message" name="message" rows="6" class="mt-1 block w-full px-5 py-4 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-lg" placeholder="Your message..." required></textarea>
+                            <textarea id="message" name="message" rows="5" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-base" placeholder="Your message..." required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-green-600 text-white py-4 px-8 rounded-full text-xl font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
                             Send Message
                         </button>
                     </form>
                 </div>
-                <div class="mt-16 text-xl">
+                <div class="mt-16 text-base md:text-lg">
                     <p class="mb-4"><strong>Email:</strong> <a href="mailto:info@greenwoodnestclub.com" class="hover:underline">info@greenwoodnestclub.com</a></p>
                     <p class="mb-4"><strong>Phone:</strong> +1 (123) 456-7890</p>
                     <p><strong>Address:</strong> Greenwood Nest Community Hall, Block A, City, Country</p>
@@ -287,25 +259,21 @@
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-10 px-8 md:px-16">
+    <footer class="bg-gray-900 text-white py-10 px-6 sm:px-8 md:px-16">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-            <p class="text-lg">&copy; 2025 Greenwood Nest Cultural Club. All rights reserved.</p>
-            <div class="flex space-x-8 mt-6 md:mt-0">
-                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Facebook</a>
-                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Instagram</a>
-                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-lg">Twitter</a>
+            <p class="text-base md:text-lg">&copy; 2025 Greenwood Nest Cultural Club. All rights reserved.</p>
+            <div class="flex space-x-6 mt-6 md:mt-0">
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-base">Facebook</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-base">Instagram</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300 text-base">Twitter</a>
             </div>
         </div>
     </footer>
 
-    <!-- Script to define global constants for external JS file -->
-    <!-- This block MUST come BEFORE linking the external landing_page_script.js -->
     <script>
         const AUTH_SERVICE_LOGIN_URL = "{{ auth_service_login_url|safe }}";
         const EVENT_SERVICE_API_BASE_URL = "{{ event_service_url|safe }}";
     </script>
-    <!-- Link to the external JavaScript file -->
     <script src="/static/script.js" defer></script>
 </body>
 </html>
