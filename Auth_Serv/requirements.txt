@@ -1,0 +1,4 @@
+Flask
+requests
+bcrypt # For password hashing
+gunicorn

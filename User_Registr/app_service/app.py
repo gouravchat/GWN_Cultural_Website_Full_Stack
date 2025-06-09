@@ -178,38 +178,26 @@ def proxy_get_all_users_for_admin():
         app.logger.error(f"Error during get all users proxy for admin: {e}")
         return jsonify({"error": "An unexpected error occurred while fetching all user details."}), 500
 
-# NEW: Proxy for creating an event (to app-events service)
+# UPDATED: Proxy for creating an event (to app-events service)
 @app.route('/api/events', methods=['POST'])
 def proxy_create_event():
     """
     Proxies event creation requests to the events service.
-    Handles multipart/form-data for file uploads, extracts JSON payload.
+    Handles multipart/form-data for file uploads.
     """
+    # Ensure the request is multipart/form-data for file uploads
     if request.content_type and 'multipart/form-data' in request.content_type:
-        # Extract JSON part from form data
-        event_data_json = request.form.get('eventData') # Assuming JSON is sent as 'eventData' field
-        if not event_data_json:
-            return jsonify({"error": "Missing eventData JSON in multipart form."}), 400
         try:
-            event_data = json.loads(event_data_json)
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON format for eventData."}), 400
-        
-        # Handle file if present
-        if 'eventPhoto' in request.files:
-            event_photo = request.files['eventPhoto']
-            # In a real application, you would save this file to cloud storage (e.g., GCS, S3)
-            # and store its URL in the database. For this example, we'll just log it
-            # and potentially create a dummy URL.
-            app.logger.info(f"Received event photo: {event_photo.filename}")
-            # Simulate a photo URL. Replace with actual upload logic.
-            event_data['photo_url'] = f"https://placehold.co/300x200/cccccc/000000?text={event_photo.filename.split('.')[0]}"
-        else:
-            event_data['photo_url'] = None # No photo uploaded
-            
-        # Forward the combined data (including photo_url) as JSON to events_api
-        try:
-            events_api_response = requests.post(f"{EVENTS_API_BASE_URL}/events", json=event_data)
+            # Forward the entire request data (including files) to the events_api
+            # requests.request handles multipart/form-data automatically if request.data and files are passed
+            events_api_response = requests.request(
+                method=request.method,
+                url=f"{EVENTS_API_BASE_URL}/events",
+                headers={k: v for k, v in request.headers if k != 'Host'}, # Exclude Host header
+                data=request.data, # This contains the raw multipart data
+                stream=True # Important for handling large file uploads efficiently
+            )
+            # Forward the response status and JSON content directly
             return jsonify(events_api_response.json()), events_api_response.status_code
         except requests.exceptions.ConnectionError:
             return jsonify({"error": "Backend events service is unavailable for event creation."}), 503
@@ -217,7 +205,7 @@ def proxy_create_event():
             app.logger.error(f"Error during event creation proxy: {e}")
             return jsonify({"error": "An unexpected error occurred during event creation."}), 500
     elif request.is_json:
-        # Handle direct JSON requests (e.g., if photo upload is separate or not used)
+        # This block handles cases where no file is uploaded, and the request is pure JSON
         event_data = request.get_json()
         try:
             events_api_response = requests.post(f"{EVENTS_API_BASE_URL}/events", json=event_data)
@@ -277,6 +265,9 @@ def get_event_details_and_participants(event_id):
 
         # 2. Fetch participation details for this event from events_api
         # Assuming events_api has an endpoint like /events/<event_id>/participations
+        # If events_api doesn't have this, you'll need to implement it or fetch from a dedicated participation service.
+        # For now, let's assume it returns an empty list if no participations, or a list of user_ids.
+        # This part might need adjustment based on your actual events_api participation handling.
         participations_response = requests.get(f"{EVENTS_API_BASE_URL}/events/{event_id}/participations")
         participations_response.raise_for_status()
         participations_data = participations_response.json()
@@ -314,6 +305,26 @@ def get_event_details_and_participants(event_id):
     except Exception as e:
         app.logger.error(f"An unexpected error occurred during combined event data fetch: {e}")
         return jsonify({"error": "An unexpected error occurred."}), 500
+
+# NEW: Proxy for serving static event photos from events_api
+@app.route('/static/event_photos/<filename>')
+def serve_event_photo_proxy(filename):
+    """
+    Proxies requests for static event photos to the events_api service.
+    This allows the browser to fetch images that were uploaded and stored by events_api.
+    """
+    url = f"{EVENTS_API_BASE_URL}/static/event_photos/{filename}"
+    try:
+        resp = requests.get(url, stream=True)
+        # Return the raw response content and headers to the client
+        response = app.response_class(resp.content, mimetype=resp.headers.get('Content-Type'))
+        response.status_code = resp.status_code
+        return response
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "Events service (for photos) is unavailable"}), 503
+    except Exception as e:
+        app.logger.error(f"An unexpected error occurred while fetching photo: {str(e)}")
+        return jsonify({"error": f"An unexpected error occurred while fetching photo: {str(e)}"}), 500
 
 
 if __name__ == '__main__':

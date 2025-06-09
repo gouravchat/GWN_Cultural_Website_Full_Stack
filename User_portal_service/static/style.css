@@ -1,0 +1,178 @@
+/* styles.css for Enhanced User Portal */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* Light gray background */
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar { 
+    width: 8px; 
+    height: 8px; 
+}
+::-webkit-scrollbar-track { 
+    background: #f1f1f1; 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb { 
+    background: #888; 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+    background: #555; 
+}
+
+.sidebar-icon { 
+    width: 20px; 
+    height: 20px; 
+    stroke-width: 2; 
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background-color: rgba(0,0,0,0.6); 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000;
+    opacity: 0; 
+    visibility: hidden; 
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-overlay.active { 
+    opacity: 1; 
+    visibility: visible; 
+}
+.modal-content {
+    background-color: white; 
+    padding: 2rem; 
+    border-radius: 0.75rem; /* 12px */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+    width: 90%; 
+    max-width: 700px; /* Increased max-width for better layout */
+    max-height: 90vh; 
+    overflow-y: auto;
+    transform: scale(0.95); 
+    transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content { 
+    transform: scale(1); 
+}
+
+.required-asterisk::after { 
+    content: ' *'; 
+    color: red; 
+}
+
+/* Toast Message Styles */
+.toast-container {
+    position: fixed; 
+    top: 20px; 
+    right: 20px; 
+    z-index: 9999; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+}
+.toast-message {
+    padding: 1rem 1.5rem; 
+    border-radius: 0.5rem; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white; 
+    opacity: 0; 
+    transform: translateX(100%); 
+    animation: toast-in 0.5s forwards;
+}
+.toast-message.success { background-color: #22c55e; } /* Tailwind green-500 */
+.toast-message.error { background-color: #ef4444; } /* Tailwind red-500 */
+.toast-message.info { background-color: #3b82f6; } /* Tailwind blue-500 */
+
+@keyframes toast-in {
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes toast-out {
+    to { opacity: 0; transform: translateX(100%); }
+}
+
+/* Form Section and Grid Styles within Modal */
+.form-section { 
+    margin-bottom: 1.5rem; 
+    padding-bottom: 1.5rem; 
+    border-bottom: 1px solid #e5e7eb; /* Tailwind gray-200 */
+}
+.form-section:last-child { 
+    border-bottom: none; 
+    margin-bottom: 0; 
+    padding-bottom: 0; 
+}
+.form-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 1rem; 
+}
+
+/* Label Styles for Modal Forms */
+.form-grid label, .modal-content label { 
+    display: block; 
+    font-weight: 500; /* Tailwind font-medium */
+    margin-bottom: 0.25rem; /* Tailwind mb-1 */
+    font-size: 0.875rem; /* Tailwind text-sm */
+    color: #374151; /* Tailwind gray-700 */
+}
+
+/* Input, Select, Textarea Styles for Modal Forms */
+.form-grid input, .form-grid select, .form-grid textarea,
+.modal-content input, .modal-content select, .modal-content textarea {
+    width: 100%; 
+    padding: 0.65rem 0.75rem; /* Adjusted padding */
+    border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
+    border-radius: 0.375rem; /* Tailwind rounded-md */
+    font-size: 0.875rem; /* Tailwind text-sm */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus Styles for Form Elements */
+.form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus,
+.modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus {
+    border-color: #4f46e5; /* Tailwind indigo-600 */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3); /* Focus ring */
+    outline: none;
+}
+
+/* Info Box Style */
+.info-box { 
+    background-color: #eff6ff; /* Tailwind blue-50 */
+    color: #1d4ed8; /* Tailwind blue-700 */
+    padding: 0.75rem 1rem; 
+    border-radius: 0.375rem; /* Tailwind rounded-md */
+    margin-bottom: 1rem; 
+    font-size: 0.875rem; /* Tailwind text-sm */
+    border-left: 4px solid #3b82f6; /* Tailwind blue-500 */
+}
+
+/* Summary Item Style for Cost Breakdown in Modal */
+.summary-item { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 0.5rem 0; 
+    font-size: 0.9rem;
+}
+.summary-item strong { 
+    color: #1f2937; /* Tailwind gray-800 */
+}
+
+/* Total Payable Display Style */
+.total-payable-display { 
+    font-size: 1.25rem; /* Tailwind text-xl */
+    font-weight: bold; /* Tailwind font-bold */
+    color: #16a34a; /* Tailwind green-600 */
+}
+
+/* Note: Tailwind CSS classes are still used directly in the HTML for most layout and styling. 
+   This CSS file primarily contains styles for custom components like the modal, toast messages,
+   and specific form appearances that are either complex to do purely with Tailwind inline
+   or are reused extensively. */

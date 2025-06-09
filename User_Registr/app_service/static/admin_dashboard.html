@@ -361,73 +361,73 @@
         <button type="button" id="toggleEventFormBtn" class="toggle-form-btn">Add New Event</button>
 
         <div id="eventFormContainer" class="form-container-box">
-            <form id="createEventForm">
-                <div class="form-group">
-                    <label for="eventName">Event Name:</label>
-                    <input type="text" id="eventName" name="eventName" required>
+            <!-- Event Creation Form -->
+            <form id="event-create-form" class="space-y-6">
+                <div>
+                    <label for="eventName" class="block text-gray-700 font-semibold mb-2">Event Name</label>
+                    <input type="text" id="eventName" name="name" required class="form-input w-full rounded-lg border-gray-300">
                 </div>
-                <div class="form-group">
-                    <label for="eventTime">Event Time:</label>
-                    <input type="datetime-local" id="eventTime" name="eventTime" required>
+                <div>
+                    <label for="eventDetails" class="block text-gray-700 font-semibold mb-2">Details</label>
+                    <textarea id="eventDetails" name="details" required class="form-textarea w-full rounded-lg border-gray-300"></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="eventCloseDate">Subscription Close Date:</label>
-                    <input type="datetime-local" id="eventCloseDate" name="eventCloseDate" required>
+                <div>
+                    <label for="eventTime" class="block text-gray-700 font-semibold mb-2">Event Date & Time</label>
+                    <input type="datetime-local" id="eventTime" name="time" required class="form-input w-full rounded-lg border-gray-300">
                 </div>
-                <div class="form-group">
-                    <label for="eventVenue">Event Venue:</label>
-                    <input type="text" id="eventVenue" name="eventVenue" required>
+                <div>
+                    <label for="eventCloseDate" class="block text-gray-700 font-semibold mb-2">Subscription Close Date</label>
+                    <input type="datetime-local" id="eventCloseDate" name="close_date" required class="form-input w-full rounded-lg border-gray-300">
                 </div>
-                <div class="form-group">
-                    <label for="eventDetails">Event Details:</label>
-                    <textarea id="eventDetails" name="eventDetails" required></textarea>
+                <div>
+                    <label for="eventVenue" class="block text-gray-700 font-semibold mb-2">Venue</label>
+                    <input type="text" id="eventVenue" name="venue" required class="form-input w-full rounded-lg border-gray-300">
                 </div>
-                <div class="form-group">
-                    <label for="eventPhoto">Event Photo:</label>
-                    <input type="file" id="eventPhoto" name="eventPhoto" accept="image/*">
+                <div>
+                    <label for="eventPhoto" class="block text-gray-700 font-semibold mb-2">Event Photo</label>
+                    <input type="file" id="eventPhoto" name="eventPhoto" accept="image/*" class="form-input w-full rounded-lg border-gray-300">
                 </div>
-                
-                <h4 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Event Subscription Configuration</h4>
-                <div class="subscription-settings-container">
-                    <div class="subscription-item">
-                        <label for="coverCharges">Cover Charges:</label>
-                        <input type="number" id="coverCharges" min="0" value="0">
-                        <select id="coverChargesType">
-                            <option value="per_head">Per Head</option>
-                            <option value="per_family">Per Family</option>
-                        </select>
-                    </div>
 
-                    <div class="subscription-item">
-                        <label for="vegFoodCharges">Veg Food Charges:</label>
-                        <input type="number" id="vegFoodCharges" min="0" value="0">
-                        <select id="vegFoodChargesType">
-                            <option value="per_head">Per Head</option>
-                            <option value="per_family">Per Family</option>
-                        </select>
-                    </div>
-
-                    <div class="subscription-item">
-                        <label for="nonVegFoodCharges">Non-Veg Food Charges:</label>
-                        <input type="number" id="nonVegFoodCharges" min="0" value="0">
-                        <select id="nonVegFoodChargesType">
-                            <option value="per_head">Per Head</                            <option value="per_family">Per Family</option>
-                        </select>
-                    </div>
-
-                    <div class="subscription-item">
-                        <label for="additionalCharges">Additional Charges:</label>
-                        <input type="number" id="additionalCharges" min="0" value="0">
-                        <select id="additionalChargesType">
-                            <option value="per_head">Per Head</option>
-                            <option value="per_family">Per Family</option>
-                        </select>
-                    </div>
-                    <button type="button" id="saveSubscriptionSettingsBtn" class="action-btn save-settings-btn">Save Subscription Settings</button>
-                    <div id="subscriptionMessage" class="message" style="display: none;"></div>
+                <!-- Subscription Settings - Re-added -->
+                <h4 class="section-header !mt-6 !mb-4">Subscription Settings</h4>
+                <div class="subscription-item">
+                    <label for="coverCharges">Cover Charges:</label>
+                    <input type="number" id="coverCharges" value="0" min="0" step="0.01" class="rounded-lg border-gray-300">
+                    <select id="coverChargesType" class="rounded-lg border-gray-300">
+                        <option value="per_head">Per Head</option>
+                        <option value="per_family">Per Family</option>
+                    </select>
                 </div>
-                <button type="submit" class="action-btn create-event-btn">Create Event</button>
+                <div class="subscription-item">
+                    <label for="vegFoodCharges">Veg Food Charges:</label>
+                    <input type="number" id="vegFoodCharges" value="0" min="0" step="0.01" class="rounded-lg border-gray-300">
+                    <select id="vegFoodChargesType" class="rounded-lg border-gray-300">
+                        <option value="per_head">Per Head</option>
+                        <option value="per_family">Per Family</option>
+                    </select>
+                </div>
+                <div class="subscription-item">
+                    <label for="nonVegFoodCharges">Non-Veg Food Charges:</label>
+                    <input type="number" id="nonVegFoodCharges" value="0" min="0" step="0.01" class="rounded-lg border-gray-300">
+                    <select id="nonVegFoodChargesType" class="rounded-lg border-gray-300">
+                        <option value="per_head">Per Head</option>
+                        <option value="per_family">Per Family</option>
+                    </select>
+                </div>
+                <div class="subscription-item">
+                    <label for="additionalCharges">Additional Charges:</label>
+                    <input type="number" id="additionalCharges" value="0" min="0" step="0.01" class="rounded-lg border-gray-300">
+                    <select id="additionalChargesType" class="rounded-lg border-gray-300">
+                        <option value="per_head">Per Head</option>
+                        <option value="per_family">Per Family</option>
+                    </select>
+                </div>
+                <!-- End Subscription Settings -->
+
                 <div id="eventMessage" class="message" style="display: none;"></div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Create Event</button>
+                </div>
             </form>
         </div>
 
@@ -441,7 +441,6 @@
         </div>
         <div id="eventInfoDisplay" class="event-info-display">
             <div id="eventDetailsDisplayArea"></div>
-
             <h4 class="section-header">Registered Users (All)</h4>
             <table id="usersTable">
                 <thead>
@@ -497,40 +496,42 @@
         </div>
     </div>
 
-    <!-- Event Details and Participants Modal (NEW) -->
-    <div id="eventDetailsAndParticipantsModal" class="modal flex">
-        <div class="modal-content">
-            <span class="close-button" id="closeEventDetailsAndParticipantsModal">&times;</span>
-            <h3 id="eventDetailsAndParticipantsModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Event Details & Participants</h3>
-            
-            <div id="modalEventDetails" class="mb-6 border-b pb-4">
-                <h4 class="text-xl font-semibold text-gray-700 mb-2">Event Information:</h4>
-                <p><strong>Name:</strong> <span id="detailEventName"></span></p>
-                <p><strong>Time:</strong> <span id="detailEventTime"></span></p>
-                <p><strong>Venue:</strong> <span id="detailEventVenue"></span></p>
-                <p><strong>Details:</strong> <span id="detailEventDetails"></span></p>
-                <img id="detailEventPhoto" class="mt-4 w-full h-48 object-cover rounded-lg" alt="Event Photo" onerror="this.style.display='none'">
-            </div>
-
-            <h4 class="text-xl font-semibold text-gray-700 mb-3">Participants:</h4>
-            <div id="participantsList" class="space-y-4">
-                <!-- Participant details will be loaded here -->
-                <p id="noParticipantsMessage" class="text-gray-600 text-center hidden">No participants for this event yet.</p>
-            </div>
-        </div>
-    </div>
-
     <!-- Message Box (for alerts/confirmations - using Tailwind for styling) -->
     <div id="messageBox" class="fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 hidden">
         <p id="messageBoxText"></p>
         <button class="absolute top-1 right-2 text-white text-lg" onclick="document.getElementById('messageBox').classList.add('hidden')">&times;</button>
     </div>
 
+    <!-- NEW: Event Details and Participants Modal -->
+    <div id="eventDetailsAndParticipantsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeEventDetailsAndParticipantsModal">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Event Details & Participants</h3>
+
+            <div class="mb-8">
+                <h4 class="text-xl font-semibold text-gray-700 mb-4">Event Information</h4>
+                <p class="text-gray-700 mb-2"><strong>Name:</strong> <span id="detailEventName"></span></p>
+                <p class="text-gray-700 mb-2"><strong>Time:</strong> <span id="detailEventTime"></span></p>
+                <p class="text-gray-700 mb-2"><strong>Venue:</strong> <span id="detailEventVenue"></span></p>
+                <p class="text-gray-700 mb-2"><strong>Details:</strong> <span id="detailEventDetails"></span></p>
+                <img id="detailEventPhoto" src="" alt="Event Photo" class="mt-4 rounded-lg hidden">
+            </div>
+
+            <div>
+                <h4 class="text-xl font-semibold text-gray-700 mb-4">Participants</h4>
+                <div id="participantsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Participant cards will be inserted here -->
+                </div>
+                <p id="noParticipantsMessage" class="text-gray-600 mt-4 hidden">No participants registered for this event yet.</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         const APP_FRONTEND_URL = "http://localhost:5000"; // Assuming app-service runs on 5000
         const globalMessageDiv = document.getElementById('message'); // For general dashboard messages
         const eventMessageDiv = document.getElementById('eventMessage'); // For event form specific messages
-        const subscriptionMessageDiv = document.getElementById('subscriptionMessage'); // For subscription settings messages
+        // const subscriptionMessageDiv = document.getElementById('subscriptionMessage'); // Removed, as it's now part of eventMessage
         const adminUsernameSpan = document.getElementById('adminUsername');
         const usersTableBody = document.querySelector('#usersTable tbody'); // Target for All Users table
         const toggleEventFormBtn = document.getElementById('toggleEventFormBtn');
@@ -544,8 +545,8 @@
         const eventUsersTableBody = document.querySelector('#eventUsersTable tbody'); // This will now be hidden
         const noEventUsersMessage = document.getElementById('noEventUsersMessage'); // This will now be hidden
 
-        // Elements for Event Subscription Configuration
-        const saveSubscriptionSettingsBtn = document.getElementById('saveSubscriptionSettingsBtn');
+        // Elements for Event Subscription Configuration (now integrated into event create form)
+        // const saveSubscriptionSettingsBtn = document.getElementById('saveSubscriptionSettingsBtn'); // Removed
 
         // Elements for Show Event Info
         const eventInfoSelect = document.getElementById('eventInfoSelect');
@@ -560,7 +561,10 @@
         const popupAdminId = document.getElementById('popupAdminId');
         const popupAdminName = document.getElementById('popupAdminName');
 
-        // NEW Modal elements (for combined event/participant data)
+        const messageBox = document.getElementById('messageBox'); // For the new global message box
+        const messageBoxText = document.getElementById('messageBoxText');
+
+        // Elements for the new Event Details and Participants Modal
         const eventDetailsAndParticipantsModal = document.getElementById('eventDetailsAndParticipantsModal');
         const closeEventDetailsAndParticipantsModal = document.getElementById('closeEventDetailsAndParticipantsModal');
         const detailEventName = document.getElementById('detailEventName');
@@ -571,8 +575,6 @@
         const participantsList = document.getElementById('participantsList');
         const noParticipantsMessage = document.getElementById('noParticipantsMessage');
 
-        const messageBox = document.getElementById('messageBox'); // For the new global message box
-        const messageBoxText = document.getElementById('messageBoxText');
 
         let simulatedEvents = []; // Stores fetched events for dropdowns
 
@@ -719,14 +721,13 @@
             } else {
                 eventFormContainer.style.display = 'none';
                 toggleEventFormBtn.textContent = 'Add New Event';
-                document.getElementById('createEventForm').reset();
-                displayMessage(eventMessageDiv, '', ''); 
-                displayMessage(subscriptionMessageDiv, '', ''); 
+                document.getElementById('event-create-form').reset(); // Reset the form
+                displayMessage(eventMessageDiv, '', ''); // Clear messages for event form
             }
         });
 
         // Event creation form submission handler
-        document.getElementById('createEventForm').addEventListener('submit', async function(event) {
+        document.getElementById('event-create-form').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             displayMessage(eventMessageDiv, '', ''); // Clear previous messages
@@ -736,7 +737,7 @@
             const eventCloseDate = document.getElementById('eventCloseDate').value;
             const eventVenue = document.getElementById('eventVenue').value;
             const eventDetails = document.getElementById('eventDetails').value;
-            const eventPhotoFile = document.getElementById('eventPhoto').files[0];
+            const eventPhotoFile = document.getElementById('eventPhoto').files[0]; // Get the selected file
 
             // Basic client-side validation for event form
             if (!eventName || !eventTime || !eventCloseDate || !eventVenue || !eventDetails) {
@@ -749,6 +750,7 @@
                 return;
             }
             
+            // Get subscription settings values
             const subscriptionSettings = {
                 coverCharges: parseFloat(document.getElementById('coverCharges').value) || 0,
                 coverChargesType: document.getElementById('coverChargesType').value,
@@ -760,6 +762,7 @@
                 additionalChargesType: document.getElementById('additionalChargesType').value
             };
 
+            // Validate subscription charges are numbers
             if (isNaN(subscriptionSettings.coverCharges) || isNaN(subscriptionSettings.vegFoodCharges) || isNaN(subscriptionSettings.nonVegFoodCharges) || isNaN(subscriptionSettings.additionalCharges)) {
                 displayMessage(eventMessageDiv, 'Please enter valid numbers for all charges.', 'error');
                 return;
@@ -790,8 +793,8 @@
 
                 if (response.ok) {
                     displayMessage(eventMessageDiv, result.message || 'Event created successfully!', 'success');
-                    event.target.reset(); 
-                    await fetchAndPopulateEvents(); 
+                    event.target.reset(); // Reset the form after successful submission
+                    await fetchAndPopulateEvents(); // Refresh event list in dropdowns
                 } else {
                     displayMessage(eventMessageDiv, result.error || 'Failed to create event.', 'error');
                     console.error('Error creating event:', result.error);
@@ -799,43 +802,6 @@
             } catch (error) {
                 console.error('Error during event creation:', error);
                 displayMessage(eventMessageDiv, 'Network error or event service is unreachable.', 'error');
-            }
-        });
-
-        // Save Subscription Settings Button Handler (Now part of the Create Event form)
-        saveSubscriptionSettingsBtn.addEventListener('click', async () => {
-            displayMessage(subscriptionMessageDiv, '', '');
-
-            const subscriptionSettings = {
-                coverCharges: parseFloat(document.getElementById('coverCharges').value) || 0,
-                coverChargesType: document.getElementById('coverChargesType').value,
-                vegFoodCharges: parseFloat(document.getElementById('vegFoodCharges').value) || 0,
-                vegFoodChargesType: document.getElementById('vegFoodChargesType').value,
-                nonVegFoodCharges: parseFloat(document.getElementById('nonVegFoodCharges').value) || 0,
-                nonVegFoodChargesType: document.getElementById('nonVegFoodChargesType').value,
-                additionalCharges: parseFloat(document.getElementById('additionalCharges').value) || 0,
-                additionalChargesType: document.getElementById('additionalChargesType').value
-            };
-
-            if (isNaN(subscriptionSettings.coverCharges) || isNaN(subscriptionSettings.vegFoodCharges) || isNaN(subscriptionSettings.nonVegFoodCharges) || isNaN(subscriptionSettings.additionalCharges)) {
-                displayMessage(subscriptionMessageDiv, 'Please enter valid numbers for all charges.', 'error');
-                return;
-            }
-
-            try {
-                console.log('Simulating saving subscription settings:', subscriptionSettings);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                const simulatedSuccess = true;
-
-                if (simulatedSuccess) {
-                    displayMessage(subscriptionMessageDiv, 'Subscription settings saved successfully! (Client-side)', 'success');
-                } else {
-                    displayMessage(subscriptionMessageDiv, 'Failed to save subscription settings. (Client-side)', 'error');
-                }
-            } catch (error) {
-                console.error('Error saving subscription settings:', error);
-                displayMessage(subscriptionMessageDiv, 'An unexpected error occurred.', 'error');
             }
         });
 
@@ -999,13 +965,6 @@
                 showMessageBox('Network error or server is unreachable. Could not load event details and participants.', 'error');
             }
         }
-
-        // Close modals if clicking outside
-        window.addEventListener('click', (event) => {
-            if (event.target == eventDetailsAndParticipantsModal) {
-                eventDetailsAndParticipantsModal.style.display = 'none';
-            }
-        });
 
         // Old displayMessage function (kept for compatibility with existing code)
         function displayMessage(messageDivElement, message, type) {

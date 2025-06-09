@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register</title>
+    <!-- Link to style.css within Auth_Serv/static/ -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1 id="formTitle">Login</h1>
+        <form id="authForm">
+            <div class="input-group login-field">
+                <label for="identifier">Username, Email, or Phone:</label>
+                <input type="text" id="identifier" name="identifier" required>
+            </div>
+
+            <div class="input-group register-field" style="display: none;">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username">
+            </div>
+            <div class="input-group register-field" style="display: none;">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email">
+            </div>
+            <div class="input-group register-field" style="display: none;">
+                <label for="phone_number">Phone Number:</label>
+                <input type="tel" id="phone_number" name="phone_number" pattern="[0-9]{10,15}" title="Enter a valid phone number (10-15 digits)">
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" id="submitButton">Login</button>
+            <p id="message" class="message"></p>
+        </form>
+
+        <p class="toggle-form">
+            <span id="toggleText">Don't have an account?</span>
+            <a href="#" id="toggleAuthMode">Register here</a>
+        </p>
+    </div>
+
+    <!-- Link to script.js within Auth_Serv/static/ -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

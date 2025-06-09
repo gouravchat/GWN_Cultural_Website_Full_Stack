@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Event Management System</h1>
+
+        <section class="event-form-section">
+            <h2>Create New Event</h2>
+            <form id="eventForm">
+                <label for="eventName">Event Name:</label>
+                <input type="text" id="eventName" name="name" required>
+
+                <label for="eventTime">Date & Time:</label>
+                <input type="datetime-local" id="eventTime" name="time" required>
+
+                <label for="closeDate">Subscription Close Date:</label>
+                <input type="datetime-local" id="closeDate" name="close_date" required>
+
+                <label for="eventVenue">Venue:</label>
+                <input type="text" id="eventVenue" name="venue" required>
+
+                <label for="eventDetails">Details:</label>
+                <textarea id="eventDetails" name="details" rows="4" required></textarea>
+
+                <label for="eventPhoto">Event Photo:</label>
+                <input type="file" id="eventPhoto" name="photo" accept="image/*">
+
+                <label for="coverCharges">Cover Charges:</label>
+                <input type="number" id="coverCharges" name="coverCharges" step="0.01" value="0.00">
+
+                <label for="coverChargesType">Cover Charges Type:</label>
+                <select id="coverChargesType" name="coverChargesType">
+                    <option value="per_head">Per Head</option>
+                    <option value="per_family">Per Family</option>
+                </select>
+
+                <label for="foodCharges">Food Charges:</label>
+                <input type="number" id="foodCharges" name="foodCharges" step="0.01" value="0.00">
+
+                <label for="foodType">Food Type:</label>
+                <select id="foodType" name="foodType">
+                    <option value="veg">Vegetarian</option>
+                    <option value="non_veg">Non-Vegetarian</option>
+                    <option value="both">Both</option>
+                </select>
+
+                <label for="foodChargesType">Food Charges Basis:</label>
+                <select id="foodChargesType" name="foodChargesType">
+                    <option value="per_head">Per Head</option>
+                    <option value="per_family">Per Family</option>
+                </select>
+                <button type="submit">Create Event</button>
+            </form>
+            <p id="formMessage" class="message"></p>
+        </section>
+
+        <section class="event-list-section">
+            <h2>All Events</h2>
+            <button id="refreshEvents">Refresh Events</button>
+            <div id="eventsList" class="events-grid">
+                <p id="noEventsMessage" style="display: none;">No events created yet.</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

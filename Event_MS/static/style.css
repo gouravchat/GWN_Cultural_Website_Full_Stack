@@ -1,0 +1,253 @@
+/* General Body Styles */
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); /* Vibrant gradient background */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center vertically on smaller content */
+    min-height: 100vh;
+    color: #333; /* Default text color */
+}
+
+/* Container for the main content */
+.container {
+    background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white background */
+    padding: 30px;
+    border-radius: 12px; /* More rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Stronger, softer shadow */
+    width: 100%;
+    max-width: 1000px; /* Slightly wider max-width */
+    display: grid;
+    grid-template-columns: 1fr; /* Default to single column for smaller screens */
+    gap: 30px; /* Space between sections */
+    animation: fadeIn 1s ease-in-out; /* Simple fade-in animation */
+}
+
+/* Keyframe for fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Headings */
+h1 {
+    font-size: 2.8em; /* Larger main title */
+    color: #4a008c; /* Deeper purple */
+    text-align: center;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+h2 {
+    font-size: 2em;
+    color: #3f007f; /* Slightly lighter purple */
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0; /* Subtle underline */
+    padding-bottom: 10px;
+}
+
+/* Section Styling (Form and List) */
+.event-form-section, .event-list-section {
+    padding: 25px;
+    border: none; /* Remove default border */
+    border-radius: 10px;
+    background: #ffffff; /* White background for sections */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Lighter shadow for sections */
+    transition: transform 0.3s ease-in-out; /* Smooth hover effect */
+}
+
+.event-form-section:hover, .event-list-section:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+/* Form Element Styling */
+form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600; /* Bolder labels */
+    color: #555;
+    font-size: 0.95em;
+}
+
+form input[type="text"],
+form input[type="datetime-local"],
+form input[type="number"],
+form select,
+form textarea {
+    width: calc(100% - 24px); /* Adjust width for padding/border */
+    padding: 12px;
+    margin-bottom: 18px; /* More space below inputs */
+    border: 1px solid #cceeff; /* Lighter blue border */
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+    border-color: #007bff; /* Highlight on focus */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2); /* Subtle glow on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Submit Button */
+form button[type="submit"] {
+    background: linear-gradient(to right, #007bff, #0056b3); /* Blue gradient */
+    color: white;
+    padding: 14px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    width: 100%;
+    transition: background 0.4s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+form button[type="submit"]:hover {
+    background: linear-gradient(to right, #0056b3, #004085); /* Darker gradient on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+/* Message Styles (Success/Error) */
+.message {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    animation: slideIn 0.5s ease-out; /* Animation for messages */
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Events Grid Layout */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adaptive columns */
+    gap: 25px; /* More space between cards */
+    margin-top: 20px;
+}
+
+/* Individual Event Card */
+.event-card {
+    background-color: #f8f9fa; /* Lighter background for cards */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle card shadow */
+    word-wrap: break-word;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-3px); /* Lift on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.event-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #0056b3; /* Blue for event titles */
+    font-size: 1.4em;
+    text-align: left; /* Align card titles left */
+}
+
+.event-card p {
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.event-card strong {
+    color: #343a40;
+}
+
+/* Refresh Button */
+#refreshEvents {
+    background-color: #6c757d; /* Muted grey */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: block; /* Make it a block element */
+    margin-left: auto;
+    margin-right: auto; /* Center the button */
+}
+
+#refreshEvents:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* No Events Message */
+#noEventsMessage {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+    .container {
+        grid-template-columns: 1fr 1.5fr; /* Form on left, events on right for larger screens */
+        align-items: start; /* Align content to the top within grid cells */
+    }
+
+    h1 {
+        grid-column: 1 / -1; /* Span full width on larger screens */
+    }
+}
+
+@media (max-width: 767px) {
+    body {
+        padding: 15px;
+    }
+    .container {
+        padding: 20px;
+        gap: 20px;
+    }
+    h1 {
+        font-size: 2.2em;
+    }
+    h2 {
+        font-size: 1.7em;
+    }
+    form button[type="submit"] {
+        padding: 12px 15px;
+        font-size: 1em;
+    }
+    .event-card {
+        padding: 15px;
+    }
+    .event-card h3 {
+        font-size: 1.2em;
+    }
+}

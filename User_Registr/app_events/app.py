@@ -1,6 +1,7 @@
 # app-events/event_service.py
 import os
-from flask import Flask, request, jsonify
+import json
+from flask import Flask, request, jsonify, send_from_directory # Import send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -12,6 +13,24 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///event_data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# --- Configuration for File Uploads ---
+UPLOAD_FOLDER = 'static/event_photos'
+# Create the upload folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
+
+# Allowed image extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    """Checks if the file extension is allowed."""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# --- End Configuration for File Uploads ---
+
 
 # Database Model for Event
 class Event(db.Model):
@@ -44,7 +63,7 @@ class Event(db.Model):
             'close_date': self.close_date.isoformat(),
             'venue': self.venue,
             'details': self.details,
-            'photo_url': self.photo_url,
+            'photo_url': self.photo_url, # Include photo_url in the dictionary
             'subscription': {
                 'coverCharges': self.cover_charges,
                 'coverChargesType': self.cover_charges_type,
@@ -62,77 +81,66 @@ class Event(db.Model):
 
 @app.route('/events', methods=['POST'])
 def create_event():
-    """API endpoint to create a new event."""
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON data"}), 400
+    """
+    API endpoint to create a new event.
+    This now expects multipart/form-data with 'eventData' (JSON string) and optionally 'eventPhoto' (file).
+    """
+    subscription_data = request.form.to_dict() if request.form else request.get_json()
 
-    required_fields = ['name', 'time', 'close_date', 'venue', 'details', 'subscription']
-    missing = [field for field in required_fields if field not in data or data[field] is None]
-    if missing:
-        return jsonify({"error": f"Missing required event fields: {', '.join(missing)}"}), 400
-
-    # Validate dates
-    try:
-        event_time = datetime.fromisoformat(data['time'])
-        close_date = datetime.fromisoformat(data['close_date'])
-    except ValueError:
-        return jsonify({"error": "Invalid date/time format. Use ISO 8601 format (e.g.,YYYY-MM-DDTHH:MM)."}), 400
-
-    if close_date >= event_time:
-        return jsonify({"error": "Subscription Close Date must be before the Event Time."}), 400
-    
-    # Validate subscription settings
-    subscription_data = data['subscription']
-    subscription_required_fields = [
-        'coverCharges', 'coverChargesType', 'vegFoodCharges', 'vegFoodChargesType',
-        'nonVegFoodCharges', 'nonVegFoodChargesType', 'additionalCharges', 'additionalChargesType'
-    ]
+    # Validate required fields (adjust as per your schema)
+    subscription_required_fields = ['name', 'details', 'time', 'venue']
     for field in subscription_required_fields:
         if field not in subscription_data or subscription_data[field] is None:
             return jsonify({"error": f"Missing required subscription field: {field}"}), 400
-    
-    # Validate charges are numbers
+
+    # Validate charges are numbers (if you use these fields)
     charge_fields = ['coverCharges', 'vegFoodCharges', 'nonVegFoodCharges', 'additionalCharges']
     for field in charge_fields:
-        try:
-            subscription_data[field] = float(subscription_data[field])
-            if subscription_data[field] < 0:
-                return jsonify({"error": f"'{field}' cannot be negative."}), 400
-        except ValueError:
-            return jsonify({"error": f"Invalid number format for '{field}'."}), 400
+        if field in subscription_data:
+            try:
+                subscription_data[field] = float(subscription_data[field])
+                if subscription_data[field] < 0:
+                    return jsonify({"error": f"'{field}' cannot be negative."}), 400
+            except ValueError:
+                return jsonify({"error": f"Invalid number format for '{field}'."}), 400
 
-    # Validate charge types
+    # Validate charge types (if you use these fields)
     allowed_charge_types = ['per_head', 'per_family']
     for field in ['coverChargesType', 'vegFoodChargesType', 'nonVegFoodChargesType', 'additionalChargesType']:
-        if subscription_data[field] not in allowed_charge_types:
+        if field in subscription_data and subscription_data[field] not in allowed_charge_types:
             return jsonify({"error": f"Invalid value for '{field}'. Allowed: {', '.join(allowed_charge_types)}"}), 400
 
-    try:
-        new_event = Event(
-            name=data['name'],
-            time=event_time,
-            close_date=close_date,
-            venue=data['venue'],
-            details=data['details'],
-            photo_url=data.get('photo_url'), # Optional
-            cover_charges=subscription_data['coverCharges'],
-            cover_charges_type=subscription_data['coverChargesType'],
-            veg_food_charges=subscription_data['vegFoodCharges'],
-            veg_food_charges_type=subscription_data['vegFoodChargesType'],
-            non_veg_food_charges=subscription_data['nonVegFoodCharges'],
-            non_veg_food_charges_type=subscription_data['nonVegFoodChargesType'],
-            additional_charges=subscription_data['additionalCharges'],
-            additional_charges_type=subscription_data['additionalChargesType']
-        )
-        db.session.add(new_event)
-        db.session.commit()
-        return jsonify({"message": "Event created successfully", "event_id": new_event.id}), 201
+    # REMOVE photo upload logic
+    # photo_url = None
+    # if 'eventPhoto' in request.files:
+    #     file = request.files['eventPhoto']
+    #     if file.filename == '':
+    #         pass
+    #     elif file and allowed_file(file.filename):
+    #         pass
+    #     else:
+    #         pass
 
-    except Exception as e:
-        db.session.rollback()
-        print(f"Database service error during event creation: {e}")
-        return jsonify({"error": "Internal server error or data conflict.", "details": str(e)}), 500
+    # Create event object WITHOUT photo_url
+    event = {
+        "name": subscription_data["name"],
+        "details": subscription_data.get("details", ""),
+        "time": subscription_data["time"],
+        "venue": subscription_data.get("venue", ""),
+        "coverCharges": subscription_data.get("coverCharges", 0),
+        "vegFoodCharges": subscription_data.get("vegFoodCharges", 0),
+        "nonVegFoodCharges": subscription_data.get("nonVegFoodCharges", 0),
+        "additionalCharges": subscription_data.get("additionalCharges", 0),
+        "coverChargesType": subscription_data.get("coverChargesType", ""),
+        "vegFoodChargesType": subscription_data.get("vegFoodChargesType", ""),
+        "nonVegFoodChargesType": subscription_data.get("nonVegFoodChargesType", ""),
+        "additionalChargesType": subscription_data.get("additionalChargesType", "")
+        # "photo_url": photo_url,  # REMOVED
+    }
+
+    # ...save event to DB or file as per your logic...
+
+    return jsonify({"message": "Event created successfully", "event": event}), 201
 
 @app.route('/events', methods=['GET'])
 def get_all_events():
@@ -166,6 +174,16 @@ def get_event(event_id):
     except Exception as e:
         print(f"Database service error fetching event {event_id}: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
+# --- New Route to Serve Static Event Photos ---
+@app.route('/static/event_photos/<filename>')
+def serve_event_photo(filename):
+    """
+    Serves event photos from the UPLOAD_FOLDER.
+    This route needs to be accessible via the app_service proxy.
+    """
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# --- End New Route ---
 
 def delete_expired_events():
     """

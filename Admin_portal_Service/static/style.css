@@ -1,0 +1,208 @@
+/* Custom CSS for Admin Portal */
+body {
+    font-family: 'Inter', sans-serif;
+    overscroll-behavior: none; /* Prevents "overscroll" page refresh/navigation */
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Light grey track */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #a0aec0; /* Medium grey thumb (Tailwind gray-500) */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #718096; /* Darker grey thumb on hover (Tailwind gray-600) */
+}
+
+/* Styling for the calendar */
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem; /* Tailwind gap-1 */
+    border: 1px solid #e2e8f0; /* Tailwind gray-300 */
+    border-radius: 0.5rem; /* Tailwind rounded-lg */
+    padding: 0.5rem; /* Tailwind p-2 */
+}
+.calendar-header {
+    text-align: center;
+    font-weight: 600; /* Tailwind semibold */
+    padding: 0.5rem; /* Tailwind p-2 */
+    background-color: #f3f4f6; /* Tailwind gray-100 */
+    border-radius: 0.375rem; /* Tailwind rounded-md */
+    font-size: 0.875rem; /* text-sm */
+}
+.calendar-day {
+    border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+    padding: 0.5rem; /* Tailwind p-2 */
+    min-height: 80px;
+    border-radius: 0.375rem; /* Tailwind rounded-md */
+    background-color: #ffffff; /* Tailwind bg-white */
+    transition: background-color 0.2s;
+    font-size: 0.875rem; /* Tailwind text-sm */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative; /* For absolute positioning of day number */
+}
+.calendar-day.other-month {
+    background-color: #f9fafb; /* Tailwind gray-50 */
+    color: #9ca3af; /* Tailwind gray-400 */
+}
+.calendar-day.today {
+    background-color: #eff6ff; /* Tailwind blue-50 */
+    border: 1px solid #93c5fd; /* Tailwind blue-300 */
+}
+.calendar-day:hover:not(.other-month) {
+    background-color: #f3f4f6; /* Tailwind gray-100 */
+}
+.calendar-day .day-number {
+    font-weight: 500; /* Tailwind medium */
+    margin-bottom: 0.25rem; /* Tailwind mb-1 */
+    align-self: flex-end; /* Position day number to top right */
+    padding: 0.125rem 0.25rem; /* p-0.5 px-1 */
+}
+.calendar-day.today .day-number {
+    font-weight: 700; /* Tailwind bold */
+    color: #2563eb; /* Tailwind blue-600 */
+}
+
+.calendar-day .event {
+    font-size: 0.7rem; /* Slightly smaller text for events */
+    background-color: #3b82f6; /* Tailwind blue-500 */
+    color: white;
+    padding: 0.125rem 0.375rem; /* py-0.5 px-1.5 */
+    border-radius: 9999px; /* Tailwind rounded-full for pill shape */
+    margin-top: 0.25rem; /* Tailwind mt-1 */
+    display: block;
+    width: calc(100% - 0.5rem); /* Adjust width considering padding */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: 1.2;
+}
+.calendar-day .event:hover {
+    background-color: #2563eb; /* Tailwind blue-600 */
+}
+.calendar-day .events-container {
+    max-height: 50px; /* Limit height for events, enable scroll if needed */
+    overflow-y: auto;
+    width: 100%;
+}
+
+
+.table-responsive {
+    overflow-x: auto;
+    max-width: 100%;
+}
+/* Styles for message box */
+.message-box {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem; /* Tailwind p-4 px-6 */
+    border-radius: 0.5rem; /* Tailwind rounded-lg */
+    color: white;
+    z-index: 1050; /* Ensure it's above most other elements */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Tailwind gap-3 */
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
+}
+.message-box.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.message-box.success { background-color: #22c55e; } /* Tailwind green-500 */
+.message-box.error { background-color: #ef4444; } /* Tailwind red-500 */
+.message-box.info { background-color: #3b82f6; } /* Tailwind blue-500 */
+
+/* Active sidebar link style */
+.sidebar-link.active {
+    background-color: #3b82f6; /* Tailwind blue-500 */
+    color: white;
+}
+.sidebar-link.active svg {
+    color: white !important; /* Ensure icon color changes */
+}
+
+/* Tab styles */
+.tab-button {
+    padding: 0.75rem 1rem; /* Tailwind py-3 px-4 */
+    font-weight: 500; /* Tailwind medium */
+    color: #4b5563; /* Tailwind gray-600 */
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+.tab-button:hover {
+    color: #1f2937; /* Tailwind gray-800 */
+}
+.tab-button.active {
+    border-bottom-color: #3b82f6; /* Tailwind blue-500 */
+    color: #3b82f6; /* Tailwind blue-500 */
+    font-weight: 600; /* Tailwind semibold */
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/*
+Tailwind's @apply directive is typically used within a Tailwind CSS build process.
+If you are using this style.css file directly without such a process,
+the @apply rules for form elements and buttons will not work.
+In that case, you should rely on applying Tailwind classes directly in your HTML
+or write out the full CSS equivalent for these elements.
+
+The HTML provided already applies Tailwind classes directly to form inputs and buttons.
+*/
+
+/* Example: Using Tailwind classes directly in HTML is preferred over these @apply rules in a static CSS file. */
+/*
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+textarea,
+select {
+    @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+}
+label {
+    @apply block text-sm font-medium text-gray-700;
+}
+
+.btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+.btn-primary {
+    @apply text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
+}
+.btn-secondary {
+    @apply text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-gray-400;
+}
+.btn-danger {
+    @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
+}
+.btn-icon {
+     @apply p-2;
+}
+.btn svg {
+    @apply w-5 h-5;
+}
+*/
