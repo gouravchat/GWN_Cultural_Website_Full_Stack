@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration System</title>
+    <!-- Tailwind CSS for base styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-900">Event Registration</h1>
+            <p class="text-lg text-gray-600 mt-2">Select an event to begin.</p>
+        </header>
+
+        <!-- User Information Header -->
+        <div id="userInfoHeader" class="hidden bg-white p-4 rounded-xl shadow-md mb-8 flex items-center space-x-4">
+            <div id="userAvatar" class="w-12 h-12 bg-indigo-500 text-white flex items-center justify-center rounded-full text-xl font-bold"></div>
+            <div>
+                <p class="font-semibold text-gray-800">Welcome, <span id="usernameDisplay"></span>!</p>
+                <p class="text-sm text-gray-500" id="userEmailDisplay"></p>
+            </div>
+        </div>
+
+        <!-- Step 1: Event Selection Section -->
+        <section id="eventSelectionSection">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2">Upcoming Events</h2>
+            <div id="eventList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Event cards will be dynamically inserted by script.js -->
+            </div>
+        </section>
+
+        <!-- Step 2: Registration Form Section -->
+        <section id="registrationFormSection" class="hidden">
+             <div class="bg-white p-8 rounded-xl shadow-lg w-full">
+                <h2 class="text-2xl font-semibold mb-2 text-gray-800">Register for: <span id="formEventName" class="text-indigo-600"></span></h2>
+                <p class="mb-6 text-gray-600">Please confirm your details and select the number of tickets.</p>
+                <form id="registrationForm">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="username" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="email" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <input type="text" id="phoneNumber" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
+                        </div>
+                        <div class="md:col-span-2"></div>
+                         <div>
+                            <label for="tower" class="block text-sm font-medium text-gray-700">Tower</label>
+                            <select id="tower" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"></select>
+                        </div>
+                        <div>
+                            <label for="flatNo" class="block text-sm font-medium text-gray-700">Flat No.</label>
+                            <input type="text" id="flatNo" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="e.g., 1204">
+                        </div>
+                        <div class="md:col-span-2 border-t pt-6 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Cover Charges (per head)</label>
+                                <input type="text" id="coverCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Veg Charges (per head)</label>
+                                <input type="text" id="vegCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Non-Veg Charges (per head)</label>
+                                <input type="text" id="nonVegCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
+                            </div>
+                        </div>
+                        <div>
+                           <label for="vegHeads" class="block text-sm font-medium text-gray-700">Number of Veg Heads</label>
+                           <input type="number" id="vegHeads" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                        </div>
+                        <div>
+                           <label for="nonVegHeads" class="block text-sm font-medium text-gray-700">Number of Non-Veg Heads</label>
+                           <input type="number" id="nonVegHeads" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                        </div>
+                        <div class="md:col-span-2 border-t pt-6 mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                               <label for="additionalContribution" class="block text-sm font-medium text-gray-700">Additional Contribution</label>
+                               <input type="number" id="additionalContribution" min="0" step="0.01" placeholder="0.00" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                            </div>
+                             <div>
+                               <label for="contributionComments" class="block text-sm font-medium text-gray-700">Comments for Contribution</label>
+                               <textarea id="contributionComments" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-8 border-t pt-6">
+                        <button type="button" id="cancelRegistration" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Proceed to Payment</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Step 3: Payment Simulation Section -->
+        <section id="paymentSection" class="hidden">
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">Payment Simulation</h2>
+                <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                    <h3 class="text-lg font-medium text-gray-900">Order Summary</h3>
+                    <p id="paymentEventName" class="text-gray-700 mt-1"></p>
+                    <div id="paymentBreakdown" class="mt-4 border-t border-indigo-200 pt-4 space-y-2 text-gray-600">
+                        <!-- Dynamic breakdown will be inserted here -->
+                    </div>
+                    <div class="flex justify-between text-gray-900 font-semibold text-xl mt-4 border-t border-indigo-200 pt-4">
+                        <span>Total Payable:</span>
+                        <span id="paymentTotalPayable"></span>
+                    </div>
+                     <div class="mt-4 border-t border-indigo-200 pt-4">
+                        <label for="payingNow" class="block text-sm font-medium text-gray-700">Paying Now</label>
+                        <input type="number" id="payingNow" min="0" step="0.01" placeholder="0.00" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                    </div>
+                    <div class="flex justify-between text-red-600 font-semibold text-lg mt-2">
+                        <span>Remaining Amount:</span>
+                        <span id="paymentRemainingAmount"></span>
+                    </div>
+                </div>
+                 <div class="mt-8 flex items-center justify-between border-t pt-6">
+                    <button id="cancelPayment" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel Payment</button>
+                    <button id="confirmPayment" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700">
+                        Confirm Payment
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Step 4: Confirmation / Status Message -->
+        <section id="statusSection" class="hidden">
+             <div id="statusMessage" class="bg-white p-12 rounded-xl shadow-lg w-full text-center">
+                <!-- Status content will be dynamically inserted here -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Custom JavaScript linked via Flask's url_for -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

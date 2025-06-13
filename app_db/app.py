@@ -1,8 +1,11 @@
 import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)  # Enable CORS for all routes
 
 # Configure SQLite database for this service
 # The database file 'users.db' will be created inside the container's /app/db_data directory

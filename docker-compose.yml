@@ -1,154 +1,156 @@
 version: '3.8'
 
-# Service Port Mapping:
-# db_api (user DB)           : 5004
-# auth_api                   : 5002
-# event-service              : 5000
-# user-portal-service        : 5001
-# admin-portal-service       : 5003
-# frontend (Landing Page)    : 80 (Host) -> 8080 (Container)
-# participation_service      : 5005
-
+# This Docker Compose file sets up a secure microservices architecture.
+# The 'nginx' service acts as the single entry point (reverse proxy).
+# All other services have their ports removed, so they are not directly
+# accessible from the public internet.
 
 services:
+  # 1. The Nginx Reverse Proxy (Public Facing)
+  nginx:
+    build: ./nginx # Assumes your nginx.conf and Dockerfile are in an 'nginx' folder
+    container_name: nginx_reverse_proxy
+    restart: unless-stopped
+    ports:
+      # Expose standard web ports to the host machine.
+      - "80:80"   # For HTTP traffic
+      - "443:443" # For HTTPS traffic
+    volumes:
+      # Mount your custom Nginx configuration.
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      # Mount your SSL certificates.
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - frontend
+      - user-portal-service
+      - admin-portal-service
+      - event_registration_service
+      - auth_api
+      - db_api
+      - event-service
+      - participation_service
+    networks:
+      - app-network
+
+  # --- Backend and Frontend Services (Internal Only) ---
+  # Note: The 'ports' section has been REMOVED from all services below.
+
   db_api:
     build: ./app_db
     container_name: db_api_container
-    ports:
-      - "5004:5004"
+    restart: unless-stopped
     volumes:
       - db_data:/app/data
-    environment:
-      - FLASK_DEBUG=1
-      - DATABASE_URL=sqlite:////app/data/users.db
     networks:
       - app-network
 
-  # Correctly defined User Participation Service
   participation_service:
-    # Assumes your Dockerfile, app_renamed.py, and requirements.txt are in this directory
     build: ./patricipation_db
     container_name: participation_service_container
-    ports:
-      - "5005:5005"
+    restart: unless-stopped
     volumes:
-      # Mounts the named volume to the /app/data directory inside the container.
-      # The app will create its 'participant_records.db' file here.
       - participation_data:/app/data
-    environment:
-      - FLASK_DEBUG=1
-      - PORT=5005
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
 
   auth_api:
     build: ./Auth_Serv
     container_name: auth_api_container
-    ports:
-      - "5002:5002"
+    restart: unless-stopped
     depends_on:
       - db_api
     environment:
-      - DB_API_URL=http://db_api:5004
-      # URLs for client-side redirection after login
-      - USER_PORTAL_URL=http://localhost:5001/portal
-      - ADMIN_PORTAL_URL=http://localhost:5003/
+      # These URLs are now relative to the public-facing Nginx server.
+      - USER_PORTAL_URL=https://localhost/portal
+      - ADMIN_PORTAL_URL=https://localhost/admin
     networks:
       - app-network
 
   event-service:
     build:
       context: ./Event_MS
-      dockerfile: Dockerfile
     container_name: event_service_container
-    ports:
-      - "5000:5000"
+    restart: unless-stopped
     volumes:
       - event_data_db:/app/data
       - event_photos_data:/app/static/event_photos
-    environment:
-      - DATABASE_URL=sqlite:////app/data/events.db
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
 
   user-portal-service:
     build:
       context: ./User_portal_service
-      dockerfile: Dockerfile
     container_name: user_portal_service_container
-    ports:
-      - "5001:5001"
+    restart: unless-stopped
     environment:
-      - FLASK_DEBUG=1
-      - PORT=5001
+      # Internal service-to-service URLs remain the same, using service names.
       - EVENT_SERVICE_URL=http://event-service:5000
       - AUTH_API_URL=http://auth_api:5002
-      # Corrected service name for internal communication
+      - PARTICIPATION_SERVICE_URL=http://participation_service:5005
+      - DB_API_URL=http://db_api:5004
+    depends_on:
+      - event-service
+      - auth_api
+      - participation_service
+    networks:
+      - app-network
+
+  event_registration_service:
+    build:
+      context: ./ERS_Serv
+    container_name: event_registration_service_container
+    restart: unless-stopped
+    environment:
+      - EVENT_SERVICE_URL=http://event-service:5000
+      - AUTH_API_URL=http://auth_api:5002
       - PARTICIPATION_SERVICE_URL=http://participation_service:5005
     depends_on:
       - event-service
       - auth_api
-      - participation_service # Depends on the new service
+      - participation_service
     networks:
       - app-network
 
   admin-portal-service:
     build:
       context: ./Admin_portal_Service
-      dockerfile: Dockerfile
     container_name: admin_portal_service_container
-    ports:
-      - "5003:5003"
+    restart: unless-stopped
     environment:
-      - FLASK_DEBUG=1
-      - PORT=5003
       - EVENT_SERVICE_URL=http://event-service:5000
       - AUTH_API_URL=http://auth_api:5002
-      # Corrected service name for internal communication
       - PARTICIPATION_SERVICE_URL=http://participation_service:5005
     depends_on:
       - event-service
       - auth_api
-      - participation_service # Depends on the new service
+      - participation_service
     networks:
       - app-network
 
   frontend: # This is your Landing Page Service
     build:
       context: ./Frontend
-      dockerfile: Dockerfile
     container_name: frontend_container
-    ports:
-      - "80:8080"
+    restart: unless-stopped
     environment:
-      - FLASK_RUN_PORT=8080
-      - AUTH_SERVICE_LOGIN_URL=http://localhost:5002/
-      - EVENT_SERVICE_URL=http://localhost:5000
+      # This service listens internally on port 8080.
+      - FLASK_RUN_PORT=8080 
+      # The login URL is now relative to the Nginx proxy.
+      - AUTH_SERVICE_LOGIN_URL=https://localhost/auth/login 
     depends_on:
       - auth_api
       - event-service
     networks:
       - app-network
 
+# Define named volumes for persistent data storage.
 volumes:
   db_data:
-  # Renamed for clarity
   participation_data:
   event_data_db:
   event_photos_data:
 
+# Define the custom bridge network for inter-service communication.
 networks:
   app-network:
     driver: bridge

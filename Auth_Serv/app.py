@@ -2,8 +2,12 @@ import os
 import requests
 from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, session, url_for
 from bcrypt import hashpw, gensalt, checkpw
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)  # Enable CORS for all routes
+
 
 # --- Configuration ---
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_default_very_secret_key_here_change_me_for_auth_serv')

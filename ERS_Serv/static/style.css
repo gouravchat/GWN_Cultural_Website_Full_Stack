@@ -1,0 +1,21 @@
+/* Custom styles for the Event Registration System */
+
+/* Apply the Inter font to the entire page */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Add a subtle hover effect to the event cards */
+.card-hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Hide sections by default */
+.hidden {
+    display: none;
+}

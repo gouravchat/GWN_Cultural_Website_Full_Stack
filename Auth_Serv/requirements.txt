@@ -2,3 +2,4 @@ Flask
 requests
 bcrypt # For password hashing
 gunicorn
+flask-cors # For handling CORS

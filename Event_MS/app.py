@@ -212,6 +212,19 @@ def get_all_events():
     except Exception as e:
         print(f"Database service error fetching events: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
+    
+#  get evetns by event id
+@app.route('/events/<int:event_id>', methods=['GET'])
+def get_event_by_id(event_id):
+    """API endpoint to get an event by ID."""
+    try:
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+        return jsonify(event.to_dict()), 200
+    except Exception as e:
+        print(f"Error fetching event by ID {event_id}: {e}")
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
