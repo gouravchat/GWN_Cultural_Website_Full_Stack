@@ -1,20 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Basic Setup ---
     const bodyElement = document.body;
-    // The userId is read dynamically from the 'data-user-id' attribute
-    // set by the Flask server in the HTML template.
     const userId = bodyElement.dataset.userId;
     
-    // Define the base URL for the ERS.
-    const ERS_LANDING_PAGE_URL = 'http://localhost:5006'; 
-    const API_BASE_URL = ''; // The API is hosted on the same server
+    // Determine the base URL for API calls and internal redirects within the portal.
+    // This dynamically determines the API base URL based on the current window location.
+    // If we're at https://your-domain.com/user-portal/portal/<user_id>,
+    // then userPortalApiBaseUrl will be '/user-portal'.
+    const userPortalApiBaseUrl = window.location.pathname.startsWith('/user-portal') ? '/user-portal' : '';
+
+    // Define the base URL for the Event Registration Service (ERS)
+    // This should also be Nginx-proxied path if ERS is behind Nginx
+    const ERS_LANDING_PAGE_URL = 'https://localhost/event-registration'; // Assuming Nginx proxies ERS at /event-registration
+    // Updated AUTH_SERVICE_URL to correctly point to Nginx-proxied auth service
+    const AUTH_SERVICE_URL = 'https://localhost/auth'; // Nginx proxies Auth Service at /auth
 
     // --- Safeguard ---
-    // If no userId is found, the user is likely not authenticated. Redirect them.
-    if (!userId || userId === '{{ user_id }}' || userId.trim() === '') {
-        // In a real app, this would redirect to a central login page.
-        alert("User ID not found. Redirecting to login.");
-        window.location.href = 'http://localhost:5002'; // Fallback to auth service
+    if (!userId || userId.trim() === '' || userId === '{{ user_id }}') { // Check against raw Jinja string just in case
+        // Use a custom modal or message box instead of alert()
+        console.error("User ID not found. Redirecting to login.");
+        // Redirect to the Nginx-proxied auth service login page
+        window.location.href = `${AUTH_SERVICE_URL}/`; 
         return;
     }
 
@@ -44,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const openSidebar = () => { if(sidebar) sidebar.classList.remove('-translate-x-full'); if(sidebarOverlay) sidebarOverlay.classList.remove('hidden'); };
-    const closeSidebar = () => { if(sidebar) sidebar.classList.add('-translate-x-full'); if(sidebarOverlay) sidebarOverlay.add('hidden'); };
+    const closeSidebar = () => { if(sidebar) sidebar.classList.add('-translate-x-full'); if(sidebarOverlay) sidebarOverlay.classList.add('hidden'); }; // Fixed typo: add -> classList.add
 
     navLinks.forEach(link => link.addEventListener('click', e => {
         e.preventDefault();
@@ -53,10 +59,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (menuButton) menuButton.addEventListener('click', openSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
-    if (logoutButton) logoutButton.addEventListener('click', () => {
-        if(confirm("Are you sure you want to logout?")) {
-             // Redirect to the server-side logout endpoint for proper handling
-             window.location.href = '/logout';
+
+    // Logout button event listener
+    if (logoutButton) logoutButton.addEventListener('click', async () => {
+        // Instead of a simple confirm(), use a custom modal for better UX if possible.
+        // For now, let's use a basic confirm as per previous instructions.
+        const userConfirmed = window.confirm("Are you sure you want to logout?"); // Use window.confirm instead of alert
+        if (userConfirmed) {
+            try {
+                // Post to the Nginx-proxied logout endpoint for the User Portal
+                // This will trigger the redirect set in User_Portal/app.py
+                const response = await fetch(`${userPortalApiBaseUrl}/logout`, {
+                    method: 'POST', // Use POST for logout for security best practice
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    console.log("Logged out successfully from User Portal.");
+                    // The backend /logout endpoint will handle the redirect
+                    // So, client-side redirect not needed here, unless backend doesn't redirect.
+                    // If backend redirect fails, then fall back to:
+                    window.location.href = `${AUTH_SERVICE_URL}/`; 
+                } else {
+                    const errorData = await response.json();
+                    console.error("Logout failed:", errorData.error);
+                    // Display error message to user, e.g., via a toast
+                }
+            } catch (error) {
+                console.error("Network error during logout:", error);
+                // Display network error to user
+            }
         }
     });
 
@@ -109,14 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // This is the key logic for redirecting to the ERS
         document.querySelectorAll('.participate-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Get the specific event ID from the button that was clicked.
                 const eventId = e.currentTarget.dataset.eventId;
-                
                 // Construct the full URL for the ERS, passing the dynamic
                 // userId and the selected eventId as query parameters.
                 const registrationUrl = `${ERS_LANDING_PAGE_URL}/register?userId=${userId}&eventId=${eventId}`;
-                
-                // Redirect the user to the ERS page with the correct context.
                 window.location.href = registrationUrl;
             });
         });
@@ -127,7 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API Calls ---
     const fetchUserProfile = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
+            // Prepend userPortalApiBaseUrl to API calls
+            const response = await fetch(`${userPortalApiBaseUrl}/api/users/${userId}`);
             if (!response.ok) throw new Error('Failed to fetch profile');
             const data = await response.json();
             displayUserProfile(data);
@@ -140,7 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fetchAllEvents = async () => {
         eventsLoading.classList.remove('hidden');
         try {
-            const response = await fetch(`${API_BASE_URL}/api/events`);
+            // Prepend userPortalApiBaseUrl to API calls
+            const response = await fetch(`${userPortalApiBaseUrl}/api/events`);
             if (!response.ok) throw new Error('Failed to fetch events');
             const data = await response.json();
             displayAllEvents(data);

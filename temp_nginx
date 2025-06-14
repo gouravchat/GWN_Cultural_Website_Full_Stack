@@ -1,0 +1,73 @@
+version: '3.8'
+
+# This Docker Compose file sets up a secure microservices architecture.
+# The 'nginx' service acts as the single entry point (reverse proxy).
+# All other services have their ports removed, so they are not directly
+# accessible from the public internet.
+
+services:
+  # 1. The Nginx Reverse Proxy (Public Facing)
+  nginx:
+    build: ./nginx # Assumes your nginx.conf and Dockerfile are in an 'nginx' folder
+    container_name: nginx_reverse_proxy
+    restart: unless-stopped
+    ports:
+      # Expose standard web ports to the host machine.
+      - "80:80"   # For HTTP traffic
+      - "443:443" # For HTTPS traffic
+    volumes:
+      # Mount your custom Nginx configuration.
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      # Mount your SSL certificates.
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - frontend
+      - db_api
+      - auth_api
+    networks:
+      - app-network
+
+  # --- Backend and Frontend Services (Internal Only) ---
+  # Note: The 'ports' section has been REMOVED from all services below.
+
+  frontend: # This is your Landing Page Service
+    build:
+      context: ./Frontend
+    container_name: frontend_container
+    restart: unless-stopped
+    environment:
+      # This service listens internally on port 8080.
+      - FLASK_RUN_PORT=8080 
+    networks:
+      - app-network
+
+  db_api:
+    build: ./app_db
+    container_name: db_api_container
+    restart: unless-stopped
+    volumes:
+      - db_data:/app/data
+    networks:
+      - app-network
+
+  auth_api:
+    build: ./Auth_Serv
+    container_name: auth_api_container
+    restart: unless-stopped
+    environment:
+      - DB_API_URL=http://db_api:5004
+      - FLASK_SECRET_KEY=test12
+    depends_on:
+      - db_api
+    networks:
+      - app-network
+  
+
+# Define named volumes for persistent data storage.
+volumes:
+  db_data:
+
+# Define the custom bridge network for inter-service communication.
+networks:
+  app-network:
+    driver: bridge

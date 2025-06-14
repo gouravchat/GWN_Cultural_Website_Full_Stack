@@ -17,12 +17,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Field containers
     const loginFields = document.querySelectorAll('.login-field');
-    const registerFields = a= document.querySelectorAll('.register-field');
+    const registerFields = document.querySelectorAll('.register-field'); // Fixed typo: 'a=' removed
 
     // --- State ---
     let isLoginMode = true;
 
-    // --- Functions ---
+    // --- Determine Base URL for API Calls ---
+    // If the browser's current URL is https://your-domain.com/auth/, then
+    // window.location.pathname will be /auth/
+    // We want the API calls to go to /auth/login or /auth/register
+    const authApiBaseUrl = window.location.pathname.startsWith('/auth') ? '/auth' : '';
 
     /**
      * Toggles the form between Login and Register modes.
@@ -85,6 +89,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let payload = {};
         let endpoint = isLoginMode ? '/login' : '/register';
 
+        // Prepend the base URL for API calls
+        const fullEndpoint = authApiBaseUrl + endpoint;
+
         if (isLoginMode) {
             payload = {
                 identifier: identifierInput.value.trim(),
@@ -100,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            const response = await fetch(endpoint, {
+            const response = await fetch(fullEndpoint, { // Use fullEndpoint here
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

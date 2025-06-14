@@ -7,7 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.378.0/dist/umd/lucide.min.js"></script>
+    <!-- Use Flask's url_for to ensure correct path to style.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        /* General styles already in style.css are more granular */
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
@@ -49,6 +52,7 @@
         </main>
     </div>
     
-    <script src="/static/script.js" defer></script>
+    <!-- Use Flask's url_for to ensure correct path to script.js -->
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </body>
 </html>

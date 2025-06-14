@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login / Register</title>
-    <!-- Link to style.css within Auth_Serv/static/ -->
-    <link rel="stylesheet" href="/static/style.css">
+    <!-- Use Flask's url_for to generate the correct path for static files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
@@ -44,7 +44,7 @@
         </p>
     </div>
 
-    <!-- Link to script.js within Auth_Serv/static/ -->
-    <script src="/static/script.js"></script>
+    <!-- Use Flask's url_for to generate the correct path for the JavaScript file -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
