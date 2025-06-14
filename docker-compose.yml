@@ -8,32 +8,25 @@ version: '3.8'
 services:
   # 1. The Nginx Reverse Proxy (Public Facing)
   nginx:
-    build: ./nginx # Assumes your nginx.conf and Dockerfile are in an 'nginx' folder
+    build: ./nginx
     container_name: nginx_reverse_proxy
     restart: unless-stopped
     ports:
-      # Expose standard web ports to the host machine.
-      - "80:80"   # For HTTP traffic
-      - "443:443" # For HTTPS traffic
+      - "80:80"
+      - "443:443"
     volumes:
-      # Mount your custom Nginx configuration.
-      # Ensure this nginx.conf contains only 'upstream' and 'server' blocks.
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      # Mount your SSL certificates.
       - ./certs:/etc/nginx/certs
     depends_on:
       - frontend
       - db_api
       - auth_api
       - event-service
-      - user-portal-service # ADDED: User Portal to Nginx dependencies
-      # Ensure other proxied services are listed here if they need to be running before Nginx
-      # - admin-portal-service # Uncomment if defined
+      - user-portal-service
     networks:
       - app-network
 
   # --- Backend and Frontend Services (Internal Only) ---
-  # Note: The 'ports' section has been REMOVED from all services below.
 
   frontend: # This is your Landing Page Service
     build:
@@ -42,10 +35,9 @@ services:
     restart: unless-stopped
     environment:
       - FLASK_RUN_PORT=8080
-      # Pass the Nginx-proxied URLs to the frontend service
-      # These should match the 'location' blocks in your nginx.conf
-      - AUTH_SERVICE_LOGIN_URL=https://localhost/auth/ # Or your public domain if using one
-      - EVENT_SERVICE_URL=https://localhost/events/ # Or your public domain if using one
+      # Use the HOST_IP_OR_DOMAIN variable for external URLs
+      - AUTH_SERVICE_LOGIN_URL=https://${HOST_IP_OR_DOMAIN}/auth/
+      - EVENT_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/events/
     networks:
       - app-network
 
@@ -54,7 +46,7 @@ services:
     container_name: db_api_container
     restart: unless-stopped
     volumes:
-      - db_data:/app/data # This is for app_db's database
+      - db_data:/app/data
     networks:
       - app-network
 
@@ -63,70 +55,53 @@ services:
     container_name: auth_api_container
     restart: unless-stopped
     environment:
-      - DB_API_URL=http://db_api:5004
+      - DB_API_URL=http://db_api:5004 # Internal Docker network URL - no change
       - FLASK_SECRET_KEY=test12
       - FLASK_SCRIPT_NAME=/auth
-      # NEW: Pass Nginx-proxied URLs for User and Admin Portals
-      - USER_PORTAL_URL=https://localhost/user-portal # Added for Auth_Serv to redirect
-      - ADMIN_PORTAL_URL=https://localhost/admin-portal # Added for Auth_Serv to redirect
+      # Use the HOST_IP_OR_DOMAIN variable for external portal URLs
+      - USER_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
+      - ADMIN_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/admin-portal
     depends_on:
       - db_api
     networks:
       - app-network
   
-  # Event Service definition with persistent database volume
-  event-service: # This service name must match the upstream in nginx.conf
+  event-service:
     build:
-      context: ./Event_MS # IMPORTANT: Replace with the actual path to your Event Service code
+      context: ./Event_MS
     container_name: event_service_container
     restart: unless-stopped
     environment:
-      - FLASK_RUN_PORT=5000 # This is the internal port Event Service listens on
-      # You can also use an environment variable here if you want to make the DB path configurable
-      # - SQLALCHEMY_DATABASE_URI=sqlite:////app/data/events.db
+      - FLASK_RUN_PORT=5000
     volumes:
-      - event_db_data:/app/data # Mount a named volume to persist events.db
+      - event_db_data:/app/data
     networks:
       - app-network
 
-  # User Portal Service definition
-  user-portal-service: # NEW SERVICE DEFINITION
+  user-portal-service:
     build:
-      context: ./User_portal_service # IMPORTANT: Replace with the actual path to your User Portal code
+      context: ./User_portal_service
     container_name: user_portal_container
     restart: unless-stopped
     environment:
-      - FLASK_RUN_PORT=5001 # Internal port User Portal listens on
-      # User Portal also needs to know its own Nginx-proxied path
-      - FLASK_SCRIPT_NAME=/user-portal # NEW: Tell Flask its Nginx prefix
-      # Also pass the Nginx-proxied URLs for other services it interacts with
-      - DB_API_URL=http://db_api:5004 # User Portal fetches profile from db_api internally
-      - EVENT_SERVICE_URL=http://event-service:5000 # User Portal fetches events from event-service internally
-      - AUTH_SERVICE_URL=https://localhost/auth # For logout redirection (Nginx-proxied path)
-      - ERS_LANDING_PAGE_URL=https://localhost/event-registration # For event registration redirection
+      - FLASK_RUN_PORT=5001
+      - FLASK_SCRIPT_NAME=/user-portal
+      - DB_API_URL=http://db_api:5004 # Internal Docker network URL - no change
+      - EVENT_SERVICE_URL=http://event-service:5000 # Internal Docker network URL - no change
+      # Use the HOST_IP_OR_DOMAIN variable for external service URLs
+      - AUTH_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/auth
+      - ERS_LANDING_PAGE_URL=https://${HOST_IP_OR_DOMAIN}/event-registration
     depends_on:
       - db_api
       - event-service
-      - auth_api # User portal's logout redirects to auth service
+      - auth_api
     networks:
       - app-network
 
-  # Placeholder for Admin Portal Service, adjust if it's a distinct service
-  # admin-portal-service:
-  #   build: ./Admin_Portal_Directory # Replace with actual path
-  #   container_name: admin_portal_container
-  #   restart: unless-stopped
-  #   environment:
-  #     - FLASK_RUN_PORT=5003 # Or whatever port it listens on internally
-  #   networks:
-  #     - app-network
-
-# Define named volumes for persistent data storage.
 volumes:
-  db_data: # For app_db (users.db)
-  event_db_data: # For event-service's events.db
+  db_data:
+  event_db_data:
 
-# Define the custom bridge network for inter-service communication.
 networks:
   app-network:
     driver: bridge
