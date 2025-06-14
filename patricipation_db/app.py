@@ -33,7 +33,7 @@ database = SQLAlchemy(app)
 # --- Database Model (Aligned with HTML Form) ---
 # Represents a participant's registration record
 class ParticipantInfo(database.Model):
-    __tablename__ = 'participant_records'
+    __tablename__ = 'participant_records'docker ps 
     
     id = database.Column(database.Integer, primary_key=True)
     user_id = database.Column(database.Integer, nullable=False, index=True)

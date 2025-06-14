@@ -22,18 +22,24 @@ services:
       - ./certs:/etc/nginx/certs
     depends_on:
       - frontend
-      - user-portal-service
-      - admin-portal-service
-      - event_registration_service
-      - auth_api
       - db_api
-      - event-service
-      - participation_service
+      - auth_api
     networks:
       - app-network
 
   # --- Backend and Frontend Services (Internal Only) ---
   # Note: The 'ports' section has been REMOVED from all services below.
+
+  frontend: # This is your Landing Page Service
+    build:
+      context: ./Frontend
+    container_name: frontend_container
+    restart: unless-stopped
+    environment:
+      # This service listens internally on port 8080.
+      - FLASK_RUN_PORT=8080 
+    networks:
+      - app-network
 
   db_api:
     build: ./app_db
@@ -44,111 +50,22 @@ services:
     networks:
       - app-network
 
-  participation_service:
-    build: ./patricipation_db
-    container_name: participation_service_container
-    restart: unless-stopped
-    volumes:
-      - participation_data:/app/data
-    networks:
-      - app-network
-
   auth_api:
     build: ./Auth_Serv
     container_name: auth_api_container
     restart: unless-stopped
+    environment:
+      - DB_API_URL=http://db_api:5004
+      - FLASK_SECRET_KEY=test12
     depends_on:
       - db_api
-    environment:
-      # These URLs are now relative to the public-facing Nginx server.
-      - USER_PORTAL_URL=https://localhost/portal
-      - ADMIN_PORTAL_URL=https://localhost/admin
     networks:
       - app-network
-
-  event-service:
-    build:
-      context: ./Event_MS
-    container_name: event_service_container
-    restart: unless-stopped
-    volumes:
-      - event_data_db:/app/data
-      - event_photos_data:/app/static/event_photos
-    networks:
-      - app-network
-
-  user-portal-service:
-    build:
-      context: ./User_portal_service
-    container_name: user_portal_service_container
-    restart: unless-stopped
-    environment:
-      # Internal service-to-service URLs remain the same, using service names.
-      - EVENT_SERVICE_URL=http://event-service:5000
-      - AUTH_API_URL=http://auth_api:5002
-      - PARTICIPATION_SERVICE_URL=http://participation_service:5005
-      - DB_API_URL=http://db_api:5004
-    depends_on:
-      - event-service
-      - auth_api
-      - participation_service
-    networks:
-      - app-network
-
-  event_registration_service:
-    build:
-      context: ./ERS_Serv
-    container_name: event_registration_service_container
-    restart: unless-stopped
-    environment:
-      - EVENT_SERVICE_URL=http://event-service:5000
-      - AUTH_API_URL=http://auth_api:5002
-      - PARTICIPATION_SERVICE_URL=http://participation_service:5005
-    depends_on:
-      - event-service
-      - auth_api
-      - participation_service
-    networks:
-      - app-network
-
-  admin-portal-service:
-    build:
-      context: ./Admin_portal_Service
-    container_name: admin_portal_service_container
-    restart: unless-stopped
-    environment:
-      - EVENT_SERVICE_URL=http://event-service:5000
-      - AUTH_API_URL=http://auth_api:5002
-      - PARTICIPATION_SERVICE_URL=http://participation_service:5005
-    depends_on:
-      - event-service
-      - auth_api
-      - participation_service
-    networks:
-      - app-network
-
-  frontend: # This is your Landing Page Service
-    build:
-      context: ./Frontend
-    container_name: frontend_container
-    restart: unless-stopped
-    environment:
-      # This service listens internally on port 8080.
-      - FLASK_RUN_PORT=8080 
-      # The login URL is now relative to the Nginx proxy.
-      - AUTH_SERVICE_LOGIN_URL=https://localhost/auth/login 
-    depends_on:
-      - auth_api
-      - event-service
-    networks:
-      - app-network
+  
 
 # Define named volumes for persistent data storage.
 volumes:
   db_data:
-  participation_data:
-  event_data_db:
-  event_photos_data:
 
 # Define the custom bridge network for inter-service communication.
 networks:

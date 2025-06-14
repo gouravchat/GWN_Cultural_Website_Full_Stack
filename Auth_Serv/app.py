@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from bcrypt import hashpw, gensalt, checkpw
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 CORS(app)  # Enable CORS for all routes
 
@@ -25,6 +25,12 @@ def login_or_register_page():
     # Check if 'target' query param is present for admin login attempt from landing page
     target_portal = request.args.get('target')
     return render_template('index.html', target_portal=target_portal) # Pass target to template if needed for UI cues
+
+@app.route('/login', methods=['GET'])
+def login_page():
+    """Serves the login page."""
+    target_portal = request.args.get('target')
+    return render_template('index.html', target_portal=target_portal) 
 
 @app.route('/static/<path:filename>')
 def serve_auth_static(filename):
