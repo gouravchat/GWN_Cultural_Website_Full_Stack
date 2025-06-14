@@ -9,19 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // then userPortalApiBaseUrl will be '/user-portal'.
     const userPortalApiBaseUrl = window.location.pathname.startsWith('/user-portal') ? '/user-portal' : '';
 
-    // Define the base URL for the Event Registration Service (ERS)
-    // This should also be Nginx-proxied path if ERS is behind Nginx
-    const ERS_LANDING_PAGE_URL = 'https://localhost/event-registration'; // Assuming Nginx proxies ERS at /event-registration
-    // Updated AUTH_SERVICE_URL to correctly point to Nginx-proxied auth service
-    const AUTH_SERVICE_URL = 'https://localhost/auth'; // Nginx proxies Auth Service at /auth
+    // CRITICAL: Read these URLs from the global JavaScript constants injected by Flask
+    // These constants (AUTH_SERVICE_URL_JS, ERS_LANDING_PAGE_URL_JS) are set in index.html
+    // by the Flask backend using Jinja2 templating.
+    const AUTH_SERVICE_URL = AUTH_SERVICE_URL_JS;
+    const ERS_LANDING_PAGE_URL = ERS_LANDING_PAGE_URL_JS;
 
     // --- Safeguard ---
-    if (!userId || userId.trim() === '' || userId === '{{ user_id }}') { // Check against raw Jinja string just in case
-        // Use a custom modal or message box instead of alert()
+    // If no userId is found, the user is likely not authenticated. Redirect them.
+    // The `userId === '{{ user_id }}'` check handles cases where Jinja2 failed to inject.
+    if (!userId || userId.trim() === '' || userId === '{{ user_id }}') { 
         console.error("User ID not found. Redirecting to login.");
         // Redirect to the Nginx-proxied auth service login page
         window.location.href = `${AUTH_SERVICE_URL}/`; 
-        return;
+        return; // Stop further script execution
     }
 
     // --- DOM Element Selectors ---
@@ -38,63 +39,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventsLoading = document.getElementById('events-loading');
     
     // --- UI Logic (Navigation, Sidebar) ---
+    /**
+     * Shows the specified content section and updates navigation.
+     * @param {string} targetId The ID of the section to show (e.g., 'profile', 'events').
+     */
     const showSection = (targetId) => {
+        // Hide all content sections except the target
         contentSections.forEach(s => s.classList.toggle('hidden', s.id !== targetId));
+        // Highlight the active navigation link
         navLinks.forEach(l => l.classList.toggle('bg-gray-700', l.getAttribute('href') === `#${targetId}`));
+        // Update mobile header title based on active section
         if (mobileHeaderTitle) {
             const activeLink = document.querySelector(`.nav-link[href="#${targetId}"] span`);
             if (activeLink) mobileHeaderTitle.textContent = activeLink.textContent;
         }
+        // Update URL hash for direct linking/bookmarking
         window.location.hash = targetId;
+        // Close sidebar on mobile after selection
         if (window.innerWidth < 768) closeSidebar();
     };
     
-    const openSidebar = () => { if(sidebar) sidebar.classList.remove('-translate-x-full'); if(sidebarOverlay) sidebarOverlay.classList.remove('hidden'); };
-    const closeSidebar = () => { if(sidebar) sidebar.classList.add('-translate-x-full'); if(sidebarOverlay) sidebarOverlay.classList.add('hidden'); }; // Fixed typo: add -> classList.add
+    /** Opens the mobile sidebar. */
+    const openSidebar = () => { 
+        if(sidebar) sidebar.classList.remove('-translate-x-full'); 
+        if(sidebarOverlay) sidebarOverlay.classList.remove('hidden'); 
+    };
 
+    /** Closes the mobile sidebar. */
+    const closeSidebar = () => { 
+        if(sidebar) sidebar.classList.add('-translate-x-full'); 
+        if(sidebarOverlay) sidebarOverlay.classList.add('hidden'); 
+    };
+
+    // Add click listeners to navigation links
     navLinks.forEach(link => link.addEventListener('click', e => {
-        e.preventDefault();
-        showSection(e.currentTarget.getAttribute('href').substring(1));
+        e.preventDefault(); // Prevent default anchor jump
+        showSection(e.currentTarget.getAttribute('href').substring(1)); // Get section ID from href
     }));
     
+    // Add event listeners for mobile menu toggle
     if (menuButton) menuButton.addEventListener('click', openSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
     // Logout button event listener
     if (logoutButton) logoutButton.addEventListener('click', async () => {
-        // Instead of a simple confirm(), use a custom modal for better UX if possible.
-        // For now, let's use a basic confirm as per previous instructions.
-        const userConfirmed = window.confirm("Are you sure you want to logout?"); // Use window.confirm instead of alert
+        // Use window.confirm for a simple confirmation dialog (replace with custom modal for better UX)
+        const userConfirmed = window.confirm("Are you sure you want to logout?"); 
         if (userConfirmed) {
             try {
-                // Post to the Nginx-proxied logout endpoint for the User Portal
-                // This will trigger the redirect set in User_Portal/app.py
+                // Send a POST request to the Nginx-proxied logout endpoint for the User Portal
                 const response = await fetch(`${userPortalApiBaseUrl}/logout`, {
-                    method: 'POST', // Use POST for logout for security best practice
+                    method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }
                 });
                 if (response.ok) {
                     console.log("Logged out successfully from User Portal.");
-                    // The backend /logout endpoint will handle the redirect
-                    // So, client-side redirect not needed here, unless backend doesn't redirect.
-                    // If backend redirect fails, then fall back to:
+                    // Explicit client-side redirect using the dynamically read AUTH_SERVICE_URL
+                    // This ensures the browser navigates to the login page correctly.
                     window.location.href = `${AUTH_SERVICE_URL}/`; 
                 } else {
                     const errorData = await response.json();
                     console.error("Logout failed:", errorData.error);
-                    // Display error message to user, e.g., via a toast
+                    // TODO: Implement a user-facing error message (e.g., a toast notification)
                 }
             } catch (error) {
                 console.error("Network error during logout:", error);
-                // Display network error to user
+                // TODO: Implement a user-facing network error message
             }
         }
     });
 
-    // --- Data Display ---
+    // --- Data Display Functions ---
+    /**
+     * Displays the fetched user profile data in the profile section.
+     * @param {object} userData - The user profile data.
+     */
     const displayUserProfile = (userData) => {
         const displayName = userData.username || 'N/A';
-        const initial = displayName.charAt(0).toUpperCase();
+        const initial = displayName.charAt(0).toUpperCase(); // Get first letter for avatar
         const profileContent = `
             <div class="flex flex-col sm:flex-row items-center sm:space-x-6">
                 <div class="mb-4 sm:mb-0">
@@ -115,79 +137,108 @@ document.addEventListener('DOMContentLoaded', () => {
                 </dl>
             </div>`;
         profileSection.innerHTML = profileContent;
+        // Re-create Lucide icons if any were added dynamically
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
+    /**
+     * Displays the fetched list of events in the events grid.
+     * @param {Array<object>} events - An array of event objects.
+     */
     const displayAllEvents = (events) => {
-        eventsLoading.classList.add('hidden');
-        eventsGrid.innerHTML = '';
+        eventsLoading.classList.add('hidden'); // Hide loading spinner
+        eventsGrid.innerHTML = ''; // Clear previous events
         if (!events || events.length === 0) {
-            eventsGrid.innerHTML = '<p class="col-span-full text-center">No events found.</p>';
+            eventsGrid.innerHTML = '<p class="col-span-full text-center text-gray-600">No events found.</p>';
             return;
         }
         events.forEach(event => {
             const card = document.createElement('div');
-            card.className = 'card p-5 flex flex-col space-y-3';
+            card.className = 'card p-5 flex flex-col space-y-3'; // Tailwind classes for card styling
+            // Format event date
             const eventDate = new Date(event.time).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             card.innerHTML = `
                 <h3 class="font-bold text-lg text-indigo-700">${event.name}</h3>
                 <p class="text-sm text-gray-500">${eventDate}</p>
                 <p class="text-sm flex-grow">${(event.details || '').substring(0,100)}...</p>
-                <button data-event-id="${event.id}" class="participate-btn mt-auto bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Participate</button>
+                <button data-event-id="${event.id}" class="participate-btn mt-auto bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300 ease-in-out">Participate</button>
             `;
             eventsGrid.appendChild(card);
         });
 
-        // This is the key logic for redirecting to the ERS
+        // Add event listeners to newly created participate buttons
         document.querySelectorAll('.participate-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const eventId = e.currentTarget.dataset.eventId;
-                // Construct the full URL for the ERS, passing the dynamic
-                // userId and the selected eventId as query parameters.
+                // Construct the full URL for the Event Registration Service (ERS)
+                // Dynamically pass userId and eventId as query parameters.
                 const registrationUrl = `${ERS_LANDING_PAGE_URL}/register?userId=${userId}&eventId=${eventId}`;
                 window.location.href = registrationUrl;
             });
         });
 
+        // Create Lucide icons if any were added dynamically (e.g., in event details)
         if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
     // --- API Calls ---
+    /** Fetches the user's profile data from the backend API. */
     const fetchUserProfile = async () => {
         try {
-            // Prepend userPortalApiBaseUrl to API calls
+            // Prepend userPortalApiBaseUrl to API calls (e.g., /user-portal/api/users/123)
             const response = await fetch(`${userPortalApiBaseUrl}/api/users/${userId}`);
-            if (!response.ok) throw new Error('Failed to fetch profile');
+            if (!response.ok) {
+                // If response is not OK, throw an error with more detail if possible
+                const errorText = await response.text();
+                throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText} - ${errorText}`);
+            }
             const data = await response.json();
             displayUserProfile(data);
         } catch(error) {
             console.error("Profile fetch error:", error);
-            profileSection.innerHTML = `<p class="text-red-500">Could not load profile data.</p>`;
+            profileSection.innerHTML = `<p class="text-red-500 col-span-full text-center">Could not load profile data. Please try again later.</p>`;
+            // TODO: Implement a toast notification for the user
         }
     };
 
+    /** Fetches all events from the backend API. */
     const fetchAllEvents = async () => {
-        eventsLoading.classList.remove('hidden');
+        eventsLoading.classList.remove('hidden'); // Show loading spinner
         try {
-            // Prepend userPortalApiBaseUrl to API calls
+            // Prepend userPortalApiBaseUrl to API calls (e.g., /user-portal/api/events)
             const response = await fetch(`${userPortalApiBaseUrl}/api/events`);
-            if (!response.ok) throw new Error('Failed to fetch events');
+            if (!response.ok) {
+                // If response is not OK, throw an error with more detail
+                const errorText = await response.text();
+                throw new Error(`Failed to fetch events: ${response.status} ${response.statusText} - ${errorText}`);
+            }
             const data = await response.json();
             displayAllEvents(data);
         } catch(error) {
             console.error("Events fetch error:", error);
-            eventsLoading.classList.add('hidden');
-            eventsGrid.innerHTML = `<p class="text-red-500 col-span-full">Could not load events.</p>`;
+            eventsLoading.classList.add('hidden'); // Hide loading spinner on error
+            eventsGrid.innerHTML = `<p class="text-red-500 col-span-full text-center">Could not load events. Please try again later.</p>`;
+            // TODO: Implement a toast notification for the user
         }
     };
     
-    // --- Initial Load ---
+    // --- Initial Load Logic ---
+    /** Initializes the User Portal by showing the default section and fetching initial data. */
     const initializePortal = async () => {
+        // Determine initial section from URL hash or default to 'profile'
         const initialSection = window.location.hash.substring(1) || 'profile';
-        showSection(initialSection);
-        await fetchUserProfile();
-        await fetchAllEvents();
+        showSection(initialSection); // Show the initial section
+        
+        // Fetch data concurrently
+        await Promise.all([
+            fetchUserProfile(),
+            fetchAllEvents()
+        ]);
+
+        // Create Lucide icons that were part of the initial HTML load
         if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
+    // Initialize the portal when the DOM is fully loaded
     initializePortal();
 });

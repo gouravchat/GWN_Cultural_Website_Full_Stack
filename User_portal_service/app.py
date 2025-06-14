@@ -9,32 +9,29 @@ from flask_cors import CORS
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # --- Get the script name from environment variable ---
-# This defines the base path for Flask's knowledge of its own URL prefix.
-# It should be set to '/user-portal' in docker-compose.yml.
 USER_PORTAL_SCRIPT_NAME = os.environ.get('FLASK_SCRIPT_NAME', '')
 
 # --- Flask App Initialization ---
-# This tells Flask that all static files are served from /user-portal/static/ (or whatever USER_PORTAL_SCRIPT_NAME is)
-# Flask will automatically handle requests for /user-portal/static/<filename>
-# and look for them in the 'static' folder.
 app = Flask(__name__,
-            static_url_path=USER_PORTAL_SCRIPT_NAME + '/static', # <--- RE-ADDED THIS CRUCIAL PART
-            static_folder='static') # <--- Explicitly state static folder
+            static_url_path=USER_PORTAL_SCRIPT_NAME + '/static',
+            static_folder='static')
 CORS(app)
 
 # --- Service URLs from Environment Variables ---
 DB_API_URL = os.environ.get('DB_API_URL', 'http://db_api:5004')
 EVENT_SERVICE_URL = os.environ.get('EVENT_SERVICE_URL', 'http://event-service:5000')
-AUTH_SERVICE_URL = os.environ.get('AUTH_SERVICE_URL', 'https://localhost/auth/')
+
+# CRITICAL: Read AUTH_SERVICE_URL and ERS_LANDING_PAGE_URL from environment variables
+# These will be set by docker-compose.yml using ${HOST_IP_OR_DOMAIN}
+AUTH_SERVICE_URL = os.environ.get('AUTH_SERVICE_URL', 'https://localhost/auth') # Default for local testing
+ERS_LANDING_PAGE_URL = os.environ.get('ERS_LANDING_PAGE_URL', 'https://localhost/event-registration') # Default for local testing
+
 
 # --- Crucial: Set APPLICATION_ROOT and SCRIPT_NAME for Nginx proxying ---
-# APPLICATION_ROOT also helps url_for.
 app.config['APPLICATION_ROOT'] = USER_PORTAL_SCRIPT_NAME
 
 @app.before_request
 def set_script_name_from_proxy():
-    # This hook is primarily for url_for to generate correct links *within* the app.
-    # The actual static file serving path is determined by static_url_path in Flask constructor.
     if 'X-Forwarded-Prefix' in request.headers:
         request.environ['SCRIPT_NAME'] = request.headers['X-Forwarded-Prefix']
     elif USER_PORTAL_SCRIPT_NAME:
@@ -78,8 +75,7 @@ def get_all_events():
 # == LOGOUT ENDPOINT
 # ==============================================================================
 
-# CHANGE: Explicitly prefix the logout route with USER_PORTAL_SCRIPT_NAME
-@app.route(f'{USER_PORTAL_SCRIPT_NAME}/logout', methods=['GET', 'POST']) # <--- Changed line
+@app.route(f'{USER_PORTAL_SCRIPT_NAME}/logout', methods=['GET', 'POST'])
 def logout():
     """
     Handles user logout by redirecting to the main authentication service.
@@ -91,21 +87,21 @@ def logout():
 # ==============================================================================
 # == FRONTEND SERVING
 # ==============================================================================
-@app.route('/portal/<int:user_id>')
+@app.route(f'{USER_PORTAL_SCRIPT_NAME}/portal/<int:user_id>')
 def user_portal_page(user_id):
     """Serves the main single-page application for the user portal."""
-    return render_template('index.html', user_id=user_id)
+    # Pass dynamic URLs to the template for JavaScript to use
+    return render_template(
+        'index.html',
+        user_id=user_id,
+        AUTH_SERVICE_URL=AUTH_SERVICE_URL,        # Pass AUTH_SERVICE_URL to template
+        ERS_LANDING_PAGE_URL=ERS_LANDING_PAGE_URL # Pass ERS_LANDING_PAGE_URL to template
+    )
 
-@app.route('/')
+@app.route(f'{USER_PORTAL_SCRIPT_NAME}/')
 def portal_root():
     """A root endpoint to confirm the service is running."""
     return "User Portal Service is active. Access via /portal/&lt;user_id&gt;"
-
-# REMOVED: The explicit serve_static route as Flask's constructor handles it automatically and robustly.
-# @app.route(f'{USER_PORTAL_SCRIPT_NAME}/static/<path:filename>')
-# def serve_static(filename):
-#     """Serves static files (JS, CSS) for the portal, respecting the SCRIPT_NAME prefix."""
-#     return send_from_directory(app.static_folder, filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
