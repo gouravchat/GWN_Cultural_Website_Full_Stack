@@ -73,6 +73,7 @@ services:
     restart: unless-stopped
     environment:
       - FLASK_RUN_PORT=5000
+      - FLASK_SCRIPT_NAME=/events
     volumes:
       - event_db_data:/app/data
     networks:

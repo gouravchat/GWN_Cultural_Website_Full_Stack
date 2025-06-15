@@ -1,15 +1,19 @@
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask_cors import CORS # Import CORS
+from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Get the script name from environment variable, which Nginx will pass
+EVENT_SERVICE_SCRIPT_NAME = os.environ.get('FLASK_SCRIPT_NAME', '')
 
-# Configure SQLite database for this service
+app = Flask(__name__,
+            static_url_path=EVENT_SERVICE_SCRIPT_NAME + '/static',
+            static_folder='static')
+CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////app/data/events.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -20,16 +24,14 @@ UPLOAD_FOLDER = 'static/event_photos'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-# --- End Configuration for File Uploads ---
 
-# Database Model for Event (MODIFIED with new food charge fields)
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -42,16 +44,13 @@ class Event(db.Model):
     cover_charges = db.Column(db.Float, default=0.0)
     cover_charges_type = db.Column(db.String(20), default='per_head')
 
-    # NEW: Food charges fields
     food_charges = db.Column(db.Float, default=0.0)
-    food_type = db.Column(db.String(20), default='veg') # e.g., 'veg', 'non_veg', 'both'
-    food_charges_type = db.Column(db.String(20), default='per_head') # e.g., 'per_head', 'per_family'
-    # END NEW
+    food_type = db.Column(db.String(20), default='veg')
+    food_charges_type = db.Column(db.String(20), default='per_head')
 
     created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
-        """Converts Event object to a dictionary for JSON serialization."""
         return {
             'id': self.id,
             'name': self.name,
@@ -64,22 +63,15 @@ class Event(db.Model):
                 'coverCharges': self.cover_charges,
                 'coverChargesType': self.cover_charges_type,
             },
-            # NEW: Include food charges in the dictionary
             'food': {
                 'foodCharges': self.food_charges,
                 'foodType': self.food_type,
                 'foodChargesType': self.food_charges_type,
             },
-            # END NEW
             'created_on': self.created_on.isoformat()
         }
 
-# Helper function to delete expired events (remains the same)
 def delete_expired_events():
-    """
-    Deletes events from the database whose close_date has passed.
-    Note: For this mockup, we'll parse close_date_str to datetime for comparison.
-    """
     try:
         now = datetime.utcnow()
         all_events = Event.query.all()
@@ -102,19 +94,26 @@ def delete_expired_events():
         db.session.rollback()
         print(f"Error deleting expired events: {e}")
 
-# API Endpoints
+app.config['APPLICATION_ROOT'] = EVENT_SERVICE_SCRIPT_NAME
 
-@app.route('/')
+@app.before_request
+def set_script_name_from_proxy():
+    if 'X-Forwarded-Prefix' in request.headers:
+        request.environ['SCRIPT_NAME'] = request.headers['X-Forwarded-Prefix']
+    elif EVENT_SERVICE_SCRIPT_NAME:
+        request.environ['SCRIPT_NAME'] = EVENT_SERVICE_SCRIPT_NAME
+    else:
+        request.environ['SCRIPT_NAME'] = ''
+
+@app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/') # Main index route
 def index():
-    """Serves the main HTML page from the templates folder."""
-    return render_template('index.html')
+    event_api_base = url_for('get_all_events', _external=False)
+    if event_api_base.endswith('/events'):
+        event_api_base = event_api_base.rsplit('/events', 1)[0]
+    return render_template('index.html', EVENT_API_BASE_URL=event_api_base)
 
-@app.route('/events', methods=['POST'])
+@app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/events', methods=['POST']) # Create event API
 def create_event():
-    """
-    API endpoint to create a new event, now supporting file upload and food charges.
-    Expects FormData from the frontend.
-    """
     name = request.form.get('name')
     time_str = request.form.get('time')
     close_date_str = request.form.get('close_date')
@@ -123,19 +122,15 @@ def create_event():
     cover_charges_str = request.form.get('coverCharges', '0.0')
     cover_charges_type = request.form.get('coverChargesType', 'per_head')
 
-    # NEW: Get food charges fields from form data
     food_charges_str = request.form.get('foodCharges', '0.0')
     food_type = request.form.get('foodType', 'veg')
     food_charges_type = request.form.get('foodChargesType', 'per_head')
-    # END NEW
 
-    # Validate required fields
     required_fields = {'name', 'time', 'close_date', 'venue', 'details'}
     for field in required_fields:
         if not request.form.get(field):
             return jsonify({"error": f"Missing required field: {field}"}), 400
 
-    # Parse and validate cover charges
     try:
         cover_charges = float(cover_charges_str)
         if cover_charges < 0:
@@ -146,7 +141,6 @@ def create_event():
     if cover_charges_type not in ['per_head', 'per_family']:
         return jsonify({"error": "Invalid value for 'coverChargesType'. Allowed: 'per_head', 'per_family'"}), 400
 
-    # NEW: Parse and validate food charges
     try:
         food_charges = float(food_charges_str)
         if food_charges < 0:
@@ -159,9 +153,8 @@ def create_event():
 
     if food_charges_type not in ['per_head', 'per_family']:
         return jsonify({"error": "Invalid value for 'foodChargesType'. Allowed: 'per_head', 'per_family'"}), 400
-    # END NEW
 
-    photo_url = None
+    photo_url_to_save = None
     if 'photo' in request.files:
         photo = request.files['photo']
         if photo.filename != '' and allowed_file(photo.filename):
@@ -169,7 +162,7 @@ def create_event():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             try:
                 photo.save(file_path)
-                photo_url = f"/static/event_photos/{filename}"
+                photo_url_to_save = f"/static/event_photos/{filename}"
             except Exception as e:
                 return jsonify({"error": "Failed to save photo", "details": str(e)}), 500
         elif photo.filename != '':
@@ -184,56 +177,74 @@ def create_event():
             details=details,
             cover_charges=cover_charges,
             cover_charges_type=cover_charges_type,
-            # NEW: Assign new food charges fields
             food_charges=food_charges,
             food_type=food_type,
             food_charges_type=food_charges_type,
-            # END NEW
-            photo_url=photo_url
+            photo_url=photo_url_to_save
         )
         db.session.add(new_event)
         db.session.commit()
-        return jsonify({"message": "Event created successfully", "event": new_event.to_dict()}), 201
+        
+        event_dict = new_event.to_dict()
+        if event_dict['photo_url']:
+            static_filename = event_dict['photo_url'].replace('/static/', '')
+            event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+        return jsonify({"message": "Event created successfully", "event": event_dict}), 201
     except Exception as e:
         db.session.rollback()
         print(f"Error creating event: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-@app.route('/events', methods=['GET'])
+@app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/events', methods=['GET']) # Get all events API
 def get_all_events():
-    """API endpoint to get all events."""
     delete_expired_events()
     try:
         events = Event.query.all()
         if events:
-            return jsonify([event.to_dict() for event in events]), 200
+            events_data = []
+            for event in events:
+                event_dict = event.to_dict()
+                if event_dict['photo_url']:
+                    if event_dict['photo_url'].startswith('/static/'):
+                         static_filename = event_dict['photo_url'].replace('/static/', '')
+                         event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+                events_data.append(event_dict)
+            return jsonify(events_data), 200
         else:
-            return jsonify([]), 200
+            return jsonify({"message": "No events found"}), 200
     except Exception as e:
         print(f"Database service error fetching events: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
     
-#  get evetns by event id
-@app.route('/events/<int:event_id>', methods=['GET'])
+@app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/events/<int:event_id>', methods=['GET']) # Get event by ID API
 def get_event_by_id(event_id):
-    """API endpoint to get an event by ID."""
     try:
         event = Event.query.get(event_id)
         if not event:
             return jsonify({"error": "Event not found"}), 404
-        return jsonify(event.to_dict()), 200
+        event_dict = event.to_dict()
+        if event_dict['photo_url'] and event_dict['photo_url'].startswith('/static/'):
+             static_filename = event_dict['photo_url'].replace('/static/', '')
+             event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+        return jsonify(event_dict), 200
     except Exception as e:
         print(f"Error fetching event by ID {event_id}: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-@app.route('/static/<path:filename>')
+# Explicitly define static route. Flask's constructor handles this when static_url_path is set.
+# Flask's built-in static handler expects paths relative to its static_folder.
+# So if the Nginx passes /events/static/photo.jpg, Flask sees /static/photo.jpg internally.
+# The @app.route needs to reflect that.
+# REMOVED: No prefix here for internal route
+@app.route('/static/<path:filename>') # <--- Uncommented this line
 def serve_static(filename):
-    return send_from_directory('static', filename)
+    """Serves static files (e.g., event photos) for the Event service."""
+    # This path is relative to the static_folder specified in Flask constructor.
+    # It will correctly handle requests like /static/event_photos/image.jpg internally.
+    return send_from_directory(app.static_folder, filename)
 
-# create delete event endpoint
-@app.route('/events/<int:event_id>', methods=['DELETE'])
+@app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/events/<int:event_id>', methods=['DELETE']) # Delete event API
 def delete_event(event_id):
-    """API endpoint to delete an event by ID."""
     try:
         event = Event.query.get(event_id)
         if not event:
@@ -246,7 +257,6 @@ def delete_event(event_id):
         print(f"Error deleting event: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-# --- Database Initialization ---
 with app.app_context():
     db.create_all()
     delete_expired_events()

@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const noEventsMessage = document.getElementById('noEventsMessage');
     const refreshEventsButton = document.getElementById('refreshEvents');
 
+    // CRITICAL: Read the API base URL from the global JavaScript constant injected by Flask
+    const EVENT_API_BASE_URL = EVENT_API_BASE_URL_JS; 
+
     // Function to display messages
     const displayMessage = (message, type) => {
         formMessage.textContent = message;
@@ -18,8 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to fetch and display events
     const fetchEvents = async () => {
         try {
-            const response = await fetch('/events');
-            const data = await response.json();
+            // CRITICAL: Use the dynamic EVENT_API_BASE_URL for the GET /events API call
+            // This should result in /events/events or /events if base is ""
+            const response = await fetch(`${EVENT_API_BASE_URL}/events`); 
+            const data = await response.json(); 
 
             eventsList.innerHTML = ''; // Clear existing events
             if (response.ok && Array.isArray(data) && data.length > 0) {
@@ -57,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error fetching events:', error);
-            displayMessage('Failed to fetch events. Please try again.', 'error');
+            if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
+                displayMessage('Failed to fetch events. Received unexpected response (not JSON). Check console for details.', 'error');
+            } else {
+                displayMessage('Failed to fetch events. Please try again.', 'error');
+            }
             noEventsMessage.style.display = 'block';
         }
     };
@@ -68,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData(eventForm);
 
-        // Convert charge fields to float
         if (formData.has('coverCharges')) {
             formData.set('coverCharges', parseFloat(formData.get('coverCharges')));
         }
@@ -82,7 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/events', {
+            // CRITICAL: Use the dynamic EVENT_API_BASE_URL for the POST /events API call
+            // This should result in /events/events
+            const response = await fetch(`${EVENT_API_BASE_URL}/events`, {
                 method: 'POST',
                 body: formData
             });
@@ -98,7 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error creating event:', error);
-            displayMessage('Failed to create event. Please check your network.', 'error');
+            if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
+                displayMessage('Failed to create event. Received unexpected response (not JSON). Check console for details.', 'error');
+            } else {
+                displayMessage('Failed to create event. Please check your network.', 'error');
+            }
         }
     });
 
