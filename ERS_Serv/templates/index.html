@@ -3,152 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Registration System</title>
-    <!-- Tailwind CSS for base styling -->
+    <title>Event Participation System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom Stylesheet -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.378.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="text-gray-800">
+    <!-- Inject dynamic URLs from Flask backend into JavaScript -->
+    <script>
+        // These global constants will be available to script.js
+        const API_CONFIG = {
+            USERS_API: "{{ USER_API_URL | safe }}",
+            EVENTS_API: "{{ EVENTS_API_URL | safe }}",
+            PART_API: "{{ PART_API_URL | safe }}",
+            ERS_CALCULATE_PRICE_API: "{{ ERS_CALCULATE_PRICE_API | safe }}",
+            ERS_START_PARTICIPATION_API: "{{ ERS_START_PARTICIPATION_API | safe }}",
+            ERS_EDIT_PARTICIPATION_API: "{{ ERS_EDIT_PARTICIPATION_API | safe }}",
+            ERS_DELETE_PARTICIPATION_API: "{{ ERS_DELETE_PARTICIPATION_API | safe }}",
+            ERS_PAYMENT_CALLBACK_API: "{{ ERS_PAYMENT_CALLBACK_API | safe }}",
+            ERS_CHECK_PARTICIPATION_API: "{{ ERS_CHECK_PARTICIPATION_API | safe }}"
+        };
+        const INITIAL_USER_DATA = JSON.parse('{{ user_data_json | tojson | safe }}');
+        const INITIAL_EVENT_DATA = JSON.parse('{{ event_data_json | tojson | safe }}');
+        const USER_PORTAL_ROOT_URL_JS = "{{ USER_PORTAL_ROOT_URL | safe }}"; // NEW: User Portal URL
+    </script>
 
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <header class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-gray-900">Event Registration</h1>
-            <p class="text-lg text-gray-600 mt-2">Select an event to begin.</p>
-        </header>
-
-        <!-- User Information Header -->
-        <div id="userInfoHeader" class="hidden bg-white p-4 rounded-xl shadow-md mb-8 flex items-center space-x-4">
-            <div id="userAvatar" class="w-12 h-12 bg-indigo-500 text-white flex items-center justify-center rounded-full text-xl font-bold"></div>
-            <div>
-                <p class="font-semibold text-gray-800">Welcome, <span id="usernameDisplay"></span>!</p>
-                <p class="text-sm text-gray-500" id="userEmailDisplay"></p>
-            </div>
+    <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+        <h1 class="text-2xl font-bold">Event Participation System</h1>
+        <div>
+            <button id="ersLogoutBtn" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Logout</span>
+            </button>
         </div>
+    </header>
 
-        <!-- Step 1: Event Selection Section -->
-        <section id="eventSelectionSection">
-            <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2">Upcoming Events</h2>
-            <div id="eventList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Event cards will be dynamically inserted by script.js -->
-            </div>
+    <main class="p-6">
+        <!-- User Info Section -->
+        <section class="mb-8">
+            <div id="user-info-display" class="card p-6"></div>
         </section>
 
-        <!-- Step 2: Registration Form Section -->
-        <section id="registrationFormSection" class="hidden">
-             <div class="bg-white p-8 rounded-xl shadow-lg w-full">
-                <h2 class="text-2xl font-semibold mb-2 text-gray-800">Register for: <span id="formEventName" class="text-indigo-600"></span></h2>
-                <p class="mb-6 text-gray-600">Please confirm your details and select the number of tickets.</p>
-                <form id="registrationForm">
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                            <input type="text" id="username" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                            <input type="email" id="email" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
-                        </div>
-                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <input type="text" id="phoneNumber" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm py-2 px-3" readonly>
-                        </div>
-                        <div class="md:col-span-2"></div>
-                         <div>
-                            <label for="tower" class="block text-sm font-medium text-gray-700">Tower</label>
-                            <select id="tower" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"></select>
-                        </div>
-                        <div>
-                            <label for="flatNo" class="block text-sm font-medium text-gray-700">Flat No.</label>
-                            <input type="text" id="flatNo" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="e.g., 1204">
-                        </div>
-                        <div class="md:col-span-2 border-t pt-6 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Cover Charges (per head)</label>
-                                <input type="text" id="coverCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Veg Charges (per head)</label>
-                                <input type="text" id="vegCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Non-Veg Charges (per head)</label>
-                                <input type="text" id="nonVegCharges" class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3" readonly>
-                            </div>
-                        </div>
-                        <div>
-                           <label for="vegHeads" class="block text-sm font-medium text-gray-700">Number of Veg Heads</label>
-                           <input type="number" id="vegHeads" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
-                        </div>
-                        <div>
-                           <label for="nonVegHeads" class="block text-sm font-medium text-gray-700">Number of Non-Veg Heads</label>
-                           <input type="number" id="nonVegHeads" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
-                        </div>
-                        <div class="md:col-span-2 border-t pt-6 mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                               <label for="additionalContribution" class="block text-sm font-medium text-gray-700">Additional Contribution</label>
-                               <input type="number" id="additionalContribution" min="0" step="0.01" placeholder="0.00" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
-                            </div>
-                             <div>
-                               <label for="contributionComments" class="block text-sm font-medium text-gray-700">Comments for Contribution</label>
-                               <textarea id="contributionComments" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"></textarea>
-                            </div>
-                        </div>
+        <!-- Event Details Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Event Details</h2>
+            <div id="event-tiles-container"></div>
+        </section>
+
+        <!-- Start/Edit Participation Section -->
+        <section class="participation-section hidden" id="add-participation-section"> <!-- Initially hidden by default -->
+            <h2 class="text-2xl font-bold mb-4">Start/Edit Participation</h2>
+            <div class="card p-6">
+                <form id="participation-form" class="space-y-4">
+                    <div class="form-group">
+                        <label for="userId" class="block text-sm font-medium text-gray-700">User ID:</label>
+                        <input type="number" id="userId" value="{{ user_id }}" required readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-gray-100 cursor-not-allowed">
                     </div>
-                    <div class="flex items-center justify-between mt-8 border-t pt-6">
-                        <button type="button" id="cancelRegistration" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button>
-                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Proceed to Payment</button>
+                    <div class="form-group">
+                        <label for="eventId" class="block text-sm font-medium text-gray-700">Event ID:</label>
+                        <input type="number" id="eventId" value="{{ event_id }}" required readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-gray-100 cursor-not-allowed">
+                    </div>
+                    <div class="form-group">
+                        <label for="numTickets" class="block text-sm font-medium text-gray-700">Number of Tickets:</label>
+                        <input type="number" id="numTickets" value="1" min="0" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="form-group">
+                        <label for="vegHeads" class="block text-sm font-medium text-gray-700">Veg Attendees:</label>
+                        <input type="number" id="vegHeads" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="form-group">
+                        <label for="nonVegHeads" class="block text-sm font-medium text-gray-700">Non-Veg Attendees:</label>
+                        <input type="number" id="nonVegHeads" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="form-group">
+                        <label for="additionalContribution" class="block text-sm font-medium text-gray-700">Additional Contribution (INR):</label>
+                        <input type="number" id="additionalContribution" value="0" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="form-group">
+                        <label for="towerNumber" class="block text-sm font-medium text-gray-700">Tower Number:</label>
+                        <select id="towerNumber" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="">Select Tower</option>
+                            <option value="Alpine1 rw">Alpine1 rw</option>
+                            <option value="Alpine1 lw">Alpine1 lw</option>
+                            <option value="Alpine2 rw">Alpine2 rw</option>
+                            <option value="Alpine2 lw">Alpine2 lw</option>
+                            <option value="Alpine3">Alpine3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="flatNumber" class="block text-sm font-medium text-gray-700">Flat Number:</label>
+                        <input type="text" id="flatNumber" placeholder="e.g., 101, G02" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="flex space-x-4">
+                        <button type="button" id="calculatePriceBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex-1 transition-colors">Calculate Price</button>
+                        <button type="button" id="submitParticipationBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex-1 transition-colors">Submit Participation</button>
                     </div>
                 </form>
+                <div id="price-calculation-result" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md"></div>
             </div>
         </section>
 
-        <!-- Step 3: Payment Simulation Section -->
-        <section id="paymentSection" class="hidden">
-            <div class="bg-white p-8 rounded-xl shadow-lg w-full">
-                <h2 class="text-2xl font-semibold mb-6 text-gray-800">Payment Simulation</h2>
-                <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                    <h3 class="text-lg font-medium text-gray-900">Order Summary</h3>
-                    <p id="paymentEventName" class="text-gray-700 mt-1"></p>
-                    <div id="paymentBreakdown" class="mt-4 border-t border-indigo-200 pt-4 space-y-2 text-gray-600">
-                        <!-- Dynamic breakdown will be inserted here -->
-                    </div>
-                    <div class="flex justify-between text-gray-900 font-semibold text-xl mt-4 border-t border-indigo-200 pt-4">
-                        <span>Total Payable:</span>
-                        <span id="paymentTotalPayable"></span>
-                    </div>
-                     <div class="mt-4 border-t border-indigo-200 pt-4">
-                        <label for="payingNow" class="block text-sm font-medium text-gray-700">Paying Now</label>
-                        <input type="number" id="payingNow" min="0" step="0.01" placeholder="0.00" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-                    </div>
-                    <div class="flex justify-between text-red-600 font-semibold text-lg mt-2">
-                        <span>Remaining Amount:</span>
-                        <span id="paymentRemainingAmount"></span>
-                    </div>
-                </div>
-                 <div class="mt-8 flex items-center justify-between border-t pt-6">
-                    <button id="cancelPayment" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel Payment</button>
-                    <button id="confirmPayment" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700">
-                        Confirm Payment
-                    </button>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Step 4: Confirmation / Status Message -->
-        <section id="statusSection" class="hidden">
-             <div id="statusMessage" class="bg-white p-12 rounded-xl shadow-lg w-full text-center">
-                <!-- Status content will be dynamically inserted here -->
+        <!-- Payment Outcome Section (hidden by default) -->
+        <section id="payment-outcome-section" class="participation-section hidden">
+            <h2 class="text-2xl font-bold mb-4">Payment Status</h2>
+            <div class="card p-6 text-center">
+                <div id="payment-status-display" class="result-box"></div>
+                <img id="qrCodeImage" src="{{ url_for('static', filename='images/nacs_qr.jpg') }}" alt="QR Code" style="max-width: 150px; height: auto; display: none; margin-top: 10px; margin-left: auto; margin-right: auto;">
             </div>
         </section>
 
-    </div>
+        <!-- Current Participation Info Section -->
+        <section class="participation-section" id="current-participation-list">
+            <h2 class="text-2xl font-bold mb-4">My Participations</h2>
+            <div id="participation-list" class="card p-6 space-y-4">
+                <p>Loading participations...</p>
+            </div>
+            <button id="refresh-participations" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Refresh Participations</button>
+        </section>
+    </main>
 
-    <!-- Custom JavaScript linked via Flask's url_for -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <footer class="bg-gray-800 text-white text-center p-4 mt-8">
+        <p>&copy; 2025 Event Management</p>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <script>
+        // This ensures Lucide icons are created for the static HTML elements after DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
 </body>
 </html>

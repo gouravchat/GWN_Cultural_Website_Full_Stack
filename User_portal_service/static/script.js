@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const eventId = e.currentTarget.dataset.eventId;
                 // Construct the full URL for the Event Registration Service (ERS)
                 // Dynamically pass userId and eventId as query parameters.
-                const registrationUrl = `${ERS_LANDING_PAGE_URL}/register?userId=${userId}&eventId=${eventId}`;
+                const registrationUrl = `${ERS_LANDING_PAGE_URL}/portal/${userId}/${eventId}`;
                 window.location.href = registrationUrl;
             });
         });

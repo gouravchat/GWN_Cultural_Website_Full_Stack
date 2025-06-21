@@ -20,10 +20,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # --- Configuration for File Uploads ---
-UPLOAD_FOLDER = 'static/event_photos'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# --- Configuration for File Uploads ---
+# CRITICAL CHANGE: Set UPLOAD_FOLDER to a sub-directory within the *persistent* volume (/app/data)
+# This path is relative to the app's WORKDIR (/app)
+UPLOAD_SUBDIR = 'event_photos' # Subdirectory name within /app/data
+UPLOAD_BASE_DIR = 'data' # This maps to /app/data which is the mounted volume
+UPLOAD_FOLDER_RELATIVE_TO_APP = os.path.join(UPLOAD_BASE_DIR, UPLOAD_SUBDIR)
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), UPLOAD_FOLDER_RELATIVE_TO_APP)
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

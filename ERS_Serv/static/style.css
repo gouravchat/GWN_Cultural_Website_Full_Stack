@@ -1,21 +1,513 @@
-/* Custom styles for the Event Registration System */
+/* Google Fonts - Poppins is a good, modern choice */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* Apply the Inter font to the entire page */
+:root {
+    /* Primary Accent Green */
+    --accent-green: #28a745; /* A more subtle, slightly darker green */
+    --accent-green-dark: #218838; /* Darker for hover states */
+    --accent-green-light: #e8f5e9; /* Very light green for subtle backgrounds/borders */
+    
+    /* Neutral Colors - Main Palette */
+    --primary-bg: #f8f9fa; /* Very light gray/off-white for main background */
+    --card-bg: #ffffff; /* Pure white for cards */
+    --text-dark: #343a40; /* Dark charcoal for primary text */
+    --text-medium: #6c757d; /* Medium gray for secondary text */
+    --text-light: #adb5bd; /* Lighter gray for subtle text */
+    --border-light: #e9ecef; /* Very light border color */
+    --border-medium: #dee2e6; /* Medium border color */
+    
+    /* Shadows */
+    --shadow-light: rgba(0, 0, 0, 0.08);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    
+    /* Action Button Colors (keep blues/reds consistent) */
+    --button-blue: #007bff;
+    --button-dark-blue: #0056b3;
+    --button-red: #dc3545;
+    --button-dark-red: #c82333;
+
+    /* Status Message Colors */
+    --success-bg: #d4edda;
+    --success-border: #c3e6cb;
+    --success-text: #155724;
+    --error-bg: #f8d7da;
+    --error-border: #f5c6cb;
+    --error-text: #721c24;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--primary-bg);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Add a subtle hover effect to the event cards */
-.card-hover-effect {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+header {
+    background-color: var(--card-bg);
+    color: var(--text-dark);
+    padding: 18px 0;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px var(--shadow-light);
+    font-size: 1.6em;
+    font-weight: 600;
+}
+header h1 {
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
 }
 
-.card-hover-effect:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Reduced gap between main sections */
+    padding: 20px 15px; /* Consistent padding */
+    align-items: center;
 }
 
-/* Hide sections by default */
-.hidden {
+.participation-section {
+    background-color: var(--card-bg);
+    padding: 20px; /* Reduced padding for sections */
+    border-radius: 12px;
+    box-shadow: 0 8px 25px var(--shadow-light);
+    width: 100%;
+    max-width: 550px;
+    box-sizing: border-box;
+}
+
+h2, h3 {
+    color: var(--text-dark);
+    border-bottom: 1px solid var(--border-light); /* Thinner border for headings */
+    padding-bottom: 10px; /* Reduced padding below line */
+    margin-top: 0;
+    font-weight: 600;
+    font-size: 1.3em; /* Slightly smaller h2 */
+}
+
+h3 {
+    font-size: 1.1em; /* Slightly smaller h3 */
+}
+
+.form-group {
+    margin-bottom: 15px; /* Reduced space between form groups */
+}
+
+label {
+    display: block;
+    margin-bottom: 5px; /* Reduced space below label */
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+input[type="number"],
+input[type="text"],
+input[type="email"],
+select {
+    width: 100%;
+    padding: 10px 12px; /* Reduced padding for inputs */
+    border: 1px solid var(--border-medium);
+    border-radius: 8px;
+    font-size: 0.95em; /* Slightly smaller font size for inputs */
+    color: var(--text-dark);
+    background-color: var(--primary-bg);
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+select:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    outline: none;
+}
+
+button {
+    background-color: var(--accent-green);
+    color: white;
+    padding: 10px 18px; /* Reduced padding for buttons */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em; /* Slightly smaller button text */
+    font-weight: 500;
+    margin-top: 10px; /* Reduced margin above buttons */
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    width: auto;
+    display: inline-block;
+    box-sizing: border-box;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+button:hover {
+    background-color: var(--accent-green-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.result-box {
+    margin-top: 20px; /* Reduced space above result box */
+    padding: 15px; /* Reduced padding */
+    background-color: var(--accent-green-light);
+    border: 1px solid var(--accent-green);
+    border-radius: 10px;
+    font-size: 0.95em; /* Slightly smaller font */
+    font-weight: 500;
+    color: var(--success-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.error-message {
+    color: var(--error-text);
+    background-color: var(--error-bg);
+    border: 1px solid var(--error-border);
+    padding: 10px; /* Reduced padding */
+    border-radius: 10px;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+.success-message {
+    color: var(--success-text);
+    background-color: var(--success-bg);
+    border: 1px solid var(--success-border);
+    padding: 10px; /* Reduced padding */
+    border-radius: 10px;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+/* User Details & Current Participation Info */
+#user-info-display {
+    padding: 15px; /* Reduced padding for user info */
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px var(--shadow-light); /* Lighter shadow */
+    margin-bottom: 15px; /* Space below user details, within section */
+}
+
+#user-info-display h3 {
+    color: var(--text-dark);
+    font-size: 1.1em; /* Smaller heading */
+    border-bottom: none; /* No border for this sub-heading */
+    padding-bottom: 0;
+    margin-bottom: 10px; /* Space between heading and text */
+}
+
+#user-info-display p {
+    font-size: 0.9em; /* Smaller font for user details */
+    color: var(--text-medium);
+    margin-bottom: 3px; /* Reduced margin */
+}
+
+#participation-list {
+    margin-top: 20px; /* Reduced space above the list */
+}
+
+#participation-list div.participation-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-light);
+    padding: 15px; /* Reduced padding */
+    margin-bottom: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px var(--shadow-light); /* Lighter item shadow */
+    position: relative;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+#participation-list div.participation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#participation-list p {
+    margin: 0 0 5px 0; /* Reduced line spacing */
+    font-size: 0.85em; /* Smaller font for list items */
+    color: var(--text-medium);
+}
+
+#participation-list p strong {
+    color: var(--text-dark);
+}
+
+.participation-item-actions {
+    margin-top: 10px; /* Reduced margin */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Reduced gap */
+    justify-content: flex-end;
+}
+
+.participation-item-actions button {
+    padding: 6px 12px; /* Smaller padding for these buttons */
+    font-size: 0.8em; /* Smaller font for these buttons */
+    margin-top: 0;
+    border-radius: 5px;
+    box-shadow: none;
+}
+.participation-item-actions button:hover {
+    transform: none;
+    box-shadow: none;
+}
+.participation-item-actions button.edit-item-btn {
+    background-color: var(--button-blue);
+}
+.participation-item-actions button.edit-item-btn:hover {
+    background-color: var(--button-dark-blue);
+}
+.participation-item-actions button.delete-item-btn {
+    background-color: var(--button-red);
+}
+.participation-item-actions button.delete-item-btn:hover {
+    background-color: var(--button-dark-red);
+}
+
+
+footer {
+    text-align: center;
+    margin-top: 40px; /* Reduced margin above footer */
+    padding: 20px; /* Reduced padding in footer */
+    background-color: var(--text-dark);
+    color: var(--text-light);
+    border-radius: 8px;
+    font-size: 0.8em; /* Smaller footer font */
+    box-shadow: 0 -2px 8px var(--shadow-light);
+}
+
+/* --- Event Tiles --- */
+
+.event-tiles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Reduced gap between tiles */
+    margin-top: 20px; /* Reduced margin */
+    justify-content: center;
+    width: 100%;
+}
+
+.event-tile {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px; /* Slightly less rounded */
+    box-shadow: 0 8px 25px var(--shadow-light); /* Lighter, less aggressive shadow */
+    padding: 25px; /* Reduced padding inside tile */
+    flex: 1;
+    min-width: 280px;
+    max-width: 450px; /* Slightly reduced max-width */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+
+.event-tile:hover {
+    transform: translateY(-6px); /* Less pronounced lift effect */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Lighter shadow on hover */
+}
+
+.event-header {
+    border-bottom: 1px solid var(--border-light); /* Thinner border */
+    padding-bottom: 15px; /* Reduced padding */
+    margin-bottom: 20px; /* Reduced margin */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-header h3 {
+    color: var(--text-dark);
+    font-size: 1.6em; /* Slightly smaller event name */
+    font-weight: 700;
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
+    line-height: 1.2;
+}
+
+.event-id {
+    font-size: 0.9em; /* Slightly smaller font */
+    color: var(--accent-green-dark);
+    background-color: var(--accent-green-light);
+    padding: 6px 12px; /* Reduced padding for ID pill */
+    border-radius: 20px; /* Slightly less rounded */
+    font-weight: 600;
+}
+
+.event-body {
+    flex-grow: 1;
+    margin-bottom: 20px; /* Reduced margin */
+}
+
+.event-body p {
+    margin-bottom: 8px; /* Reduced line spacing */
+    line-height: 1.4;
+    font-size: 0.92em; /* Slightly smaller body text */
+    color: var(--text-medium);
+}
+
+.event-details-text {
+    font-style: italic;
+    color: var(--text-light);
+    font-size: 0.85em; /* Smaller for details */
+}
+
+.event-footer {
+    border-top: 1px solid var(--border-light); /* Thinner border */
+    padding-top: 20px; /* Reduced padding */
+    margin-top: 20px; /* Reduced margin */
+}
+
+.event-footer p {
+    margin: 6px 0; /* Reduced margin */
+    font-size: 0.88em; /* Slightly smaller footer text */
+    color: var(--text-medium);
+}
+
+.event-footer p strong {
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+.event-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Reduced gap between stacked buttons */
+    margin-top: 20px; /* Reduced margin */
+}
+
+.event-actions button {
+    background-color: var(--button-blue);
+    padding: 10px 18px; /* Reduced padding for buttons */
+    font-size: 0.95em; /* Slightly smaller font */
+    border-radius: 8px;
+    font-weight: 500;
+    width: 100%;
+    margin-top: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.event-actions button:hover {
+    background-color: var(--button-dark-blue);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+
+/* Form & Payment Outcome Sections */
+#add-participation-section {
     display: none;
+    width: 100%;
+    max-width: 550px;
+    box-sizing: border-box;
+}
+
+#payment-outcome-section {
+    display: none;
+    margin-top: 20px; /* Reduced margin */
+    padding: 25px; /* Reduced padding */
+    background-color: var(--accent-green-light);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px var(--shadow-light);
+    width: 100%;
+    max-width: 550px;
+    box-sizing: border-box;
+}
+
+#payment-outcome-section h3 {
+    color: var(--success-text);
+    border-bottom-color: rgba(40, 167, 69, 0.3);
+}
+
+#qrCodeImage {
+    max-width: 120px; /* Smaller QR default */
+    height: auto;
+    margin-top: 20px; /* Reduced margin */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* --- Media Queries for Desktop/Tablet Layout (Larger Screens) --- */
+
+@media (min-width: 768px) {
+    main {
+        flex-direction: row;
+        justify-content: center;
+        gap: 25px; /* Reduced gap between main sections on desktop */
+        padding: 25px;
+    }
+
+    .participation-section {
+        max-width: calc(50% - 12.5px); /* Adjusted max-width for new gap */
+        min-width: 350px; /* Reduced min-width slightly */
+    }
+    
+    #add-participation-section {
+        max-width: calc(50% - 12.5px);
+    }
+
+    .event-actions {
+        flex-direction: row;
+        gap: 10px; /* Reduced gap between buttons on desktop */
+    }
+
+    .event-actions button {
+        width: auto;
+        padding: 12px 25px; /* Reduced padding */
+        flex-grow: 1;
+    }
+
+    .participation-management-buttons {
+        flex-direction: row;
+        gap: 15px; /* Reduced gap */
+    }
+
+    .participation-management-buttons button {
+        width: auto;
+        min-width: 160px; /* Reduced min-width */
+        padding: 10px 20px; /* Reduced padding */
+    }
+
+    #qrCodeImage {
+        max-width: 140px; /* Smaller QR code on desktop */
+    }
+}
+
+/* Even larger screens (e.g., desktops) */
+@media (min-width: 1024px) {
+    main {
+        gap: 30px; /* Reduced gap */
+        max-width: 1200px; /* Reduced max-width */
+        margin: 0 auto;
+    }
+
+    .participation-section {
+        max-width: 550px; /* Reduced max-width for content in sections */
+        padding: 30px;
+    }
+    #add-participation-section {
+        max-width: 550px;
+    }
+    
+    .event-tile {
+        padding: 35px; /* Reduced padding */
+        max-width: 500px; /* Reduced max-width */
+    }
+
+    .event-header h3 {
+        font-size: 1.8em; /* Adjusted font size */
+    }
 }

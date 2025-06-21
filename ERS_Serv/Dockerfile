@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 5006
 
 # Command to run the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5006", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5007", "app:app"]

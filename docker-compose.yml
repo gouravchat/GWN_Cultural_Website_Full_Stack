@@ -23,6 +23,7 @@ services:
       - auth_api
       - event-service
       - user-portal-service
+      - participation-service
     networks:
       - app-network
 
@@ -91,7 +92,7 @@ services:
       - EVENT_SERVICE_URL=http://event-service:5000 # Internal Docker network URL - no change
       # Use the HOST_IP_OR_DOMAIN variable for external service URLs
       - AUTH_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/auth
-      - ERS_LANDING_PAGE_URL=https://${HOST_IP_OR_DOMAIN}/event-registration
+      - ERS_LANDING_PAGE_URL=https://${HOST_IP_OR_DOMAIN}/ers
     depends_on:
       - db_api
       - event-service
@@ -99,9 +100,43 @@ services:
     networks:
       - app-network
 
+  participation-service: # New Participation Service
+      build:
+        context: ./participation_serv # Assuming your Flask app is in a folder named Participation_Serv
+      container_name: participation_service_container
+      restart: unless-stopped
+      environment:
+        - FLASK_RUN_PORT=5005 # Port your Flask app runs on internally
+        - FLASK_SCRIPT_NAME=/participations # This matches the Nginx location block
+      volumes:
+        - participation_db_data:/app/data # Persistent storage for your SQLite DB
+      networks:
+        - app-network
+
+  ers-service:
+    build:
+      context: ./ERS_Serv # NEW: Point to the dedicated ERS service directory
+    container_name: ers_service_container
+    restart: unless-stopped
+    environment:
+      - FLASK_RUN_PORT=5007 # ERS now runs on 5007
+      - FLASK_SCRIPT_NAME=/ers # NEW: Dedicated script name for ERS
+      # Internal Docker network URLs for ERS to communicate with other services
+      - DB_API_URL=http://db_api:5004 # ERS talks to DB API
+      - EVENT_SERVICE_URL=http://event-service:5000 # ERS talks to Event Service
+      - PARTICIPATION_SERVICE_URL=http://participation-service:5005 # ERS talks to Participation Service
+      - USER_PORTAL_ROOT_URL=http://frontend:8080 # ERS can link back to the frontend
+    depends_on:
+      - db_api
+      - event-service
+      - participation-service
+    networks:
+      - app-network
+
 volumes:
   db_data:
   event_db_data:
+  participation_db_data:
 
 networks:
   app-network:

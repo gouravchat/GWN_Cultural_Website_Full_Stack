@@ -1,0 +1,123 @@
+import requests
+import json
+from datetime import date
+import sys
+
+# --- Configuration ---
+# This should match the URL where your Participation Service is running.
+PARTICIPATION_SERVICE_BASE_URL = "http://localhost:5005"
+
+# --- Helper Function ---
+def print_response(name, response):
+    """Helper function to print formatted test results."""
+    print(f"\n--- Test: {name} ---")
+    print(f"URL: {response.url}")
+    print(f"Status Code: {response.status_code}")
+    try:
+        response_json = response.json()
+        print("Response JSON:")
+        print(json.dumps(response_json, indent=2))
+        return response_json # Return parsed JSON for further use
+    except json.JSONDecodeError:
+        print("Response Body (Not JSON):")
+        print(response.text)
+        return None # Indicate failure to parse
+    finally:
+        print("--------------------")
+
+# --- Test Functions ---
+
+def run_all_tests():
+    """Runs a sequence of tests for creating, reading, updating, and deleting a participant record."""
+    
+    # 1. Test Health Check
+    try:
+        health_response = requests.get(f"{PARTICIPATION_SERVICE_BASE_URL}/health")
+        print_response("Health Check", health_response)
+        if health_response.status_code != 200:
+            print("Health check failed, aborting tests.")
+            sys.exit(1) # Exit with an error code
+    except requests.exceptions.ConnectionError as e:
+        print(f"\nConnection failed. Is the service running at {PARTICIPATION_SERVICE_BASE_URL}? Error: {e}")
+        sys.exit(1)
+
+    # 2. Test POST /participant-records (Create)
+    print("\nAttempting to create a new participant record...")
+    post_payload = {
+        "user_id": 99, "user_name": "Test User Renamed",
+        "email_id": "test.user.renamed@example.com", "phone_number": "9876543210",
+        "event_id": 101, "event_date": date.today().isoformat(),
+        "tower_number": "T1", "wing": "B", "flat_type": "2BHK", "floor_number": 15,
+        "cover_charge_paid": 500.0, "additional_contribution": 100.0,
+        "payment_remaining": 250.0, "veg_heads": 2, "non_veg_heads": 1,
+        "status": "attending"
+    }
+    
+    created_record_id = None
+    try:
+        post_response = requests.post(f"{PARTICIPATION_SERVICE_BASE_URL}/participant-records", json=post_payload)
+        response_data = print_response("POST /participant-records", post_response)
+        if post_response.status_code == 201 and response_data:
+            created_record_id = response_data.get('participant_info', {}).get('id')
+    except requests.exceptions.RequestException as e:
+        print(f"POST request failed with an exception: {e}")
+
+    if not created_record_id:
+        print("\nCould not create participant record, aborting further tests.")
+        sys.exit(1)
+
+    # 3. Test GET /participant-records/<id> (Read)
+    print(f"\nAttempting to get the created record (ID: {created_record_id})...")
+    try:
+        get_response = requests.get(f"{PARTICIPATION_SERVICE_BASE_URL}/participant-records/{created_record_id}")
+        print_response(f"GET /participant-records/{created_record_id}", get_response)
+    except requests.exceptions.RequestException as e:
+        print(f"GET request failed with an exception: {e}")
+
+    # 4. Test PUT /participant-records/<id> (Update)
+    print(f"\nAttempting to update the record (ID: {created_record_id})...")
+    put_payload = { "status": "paid_in_full", "payment_remaining": 0.0, "non_veg_heads": 2 }
+    try:
+        put_response = requests.put(f"{PARTICIPATION_SERVICE_BASE_URL}/participant-records/{created_record_id}", json=put_payload)
+        print_response(f"PUT /participant-records/{created_record_id}", put_response)
+    except requests.exceptions.RequestException as e:
+        print(f"PUT request failed with an exception: {e}")
+
+    # 5. Test GET by User to verify update
+    print(f"\nAttempting to get records for user 99 to verify update...")
+    try:
+        get_user_response = requests.get(f"{PARTICIPATION_SERVICE_BASE_URL}/users/99/participant-records")
+        print_response("GET /users/99/participant-records (after update)", get_user_response)
+    except requests.exceptions.RequestException as e:
+        print(f"GET by user request failed with an exception: {e}")
+        
+    # 6. Test GET by Event
+    print(f"\nAttempting to get records for event 101...")
+    try:
+        get_event_response = requests.get(f"{PARTICIPATION_SERVICE_BASE_URL}/events/101/participant-records")
+        print_response("GET /events/101/participant-records", get_event_response)
+    except requests.exceptions.RequestException as e:
+        print(f"GET by event request failed with an exception: {e}")
+
+    # 7. Test DELETE /participant-records/<id> (Delete)
+    print(f"\nAttempting to delete the record (ID: {created_record_id})...")
+    try:
+        delete_response = requests.delete(f"{PARTICIPATION_SERVICE_BASE_URL}/participant-records/{created_record_id}")
+        print_response(f"DELETE /participant-records/{created_record_id}", delete_response)
+    except requests.exceptions.RequestException as e:
+        print(f"DELETE request failed with an exception: {e}")
+
+    # 8. Test GET by User to verify deletion
+    print(f"\nAttempting to get records for user 99 to verify deletion...")
+    try:
+        get_user_after_delete_response = requests.get(f"{PARTICIPATION_SERVICE_BASE_URL}/users/99/participant-records")
+        response_data = print_response("GET /users/99/participant-records (after delete)", get_user_after_delete_response)
+        if get_user_after_delete_response.status_code == 200 and isinstance(response_data, list) and not response_data:
+            print("VERIFICATION SUCCESS: Participant record was successfully deleted.")
+        else:
+            print("VERIFICATION FAILED: Participant record might not have been deleted.")
+    except requests.exceptions.RequestException as e:
+        print(f"GET by user request after delete failed with an exception: {e}")
+
+if __name__ == "__main__":
+    run_all_tests()
