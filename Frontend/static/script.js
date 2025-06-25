@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Your Event Service (original app.py) provides events at /events
-    const ACTUAL_EVENTS_API_ENDPOINT = `${effectiveEventServiceApiBaseUrl}/events`;
+    const ACTUAL_EVENTS_API_ENDPOINT = `${effectiveEventServiceApiBaseUrl}events`;
 
     fetch(ACTUAL_EVENTS_API_ENDPOINT)
         .then(response => {

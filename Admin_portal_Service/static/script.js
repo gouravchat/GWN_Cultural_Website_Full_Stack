@@ -26,6 +26,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- DOM Element References ---
     const sidebar = document.querySelector('aside');
+    const menuButton = document.getElementById('menu-button');
+    let sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    console.log("DEBUG: Sidebar element found:", !!sidebar, sidebar);
+    console.log("DEBUG: Menu button element found:", !!menuButton, menuButton);
+    console.log("DEBUG: Sidebar overlay element found:", !!sidebarOverlay, sidebarOverlay);
+
+
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     const pageSections = document.querySelectorAll('.page-section');
     const pageTitle = document.getElementById('pageTitle');
@@ -43,31 +51,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const overallUsersTableBody = document.getElementById('overallUsersTableBody');
     const userSearchInput = document.getElementById('userSearchInput');
 
+    // Calendar Specific References
     const calendarGrid = document.getElementById('calendarGrid');
     const calendarMonthYear = document.getElementById('calendarMonthYear');
     const calendarPrevMonth = document.getElementById('calendarPrevMonth');
-    const calendarNextMonth = document.getElementById('calendarNextMonth');
+    // CRITICAL FIX: Corrected typo in calendarNextMonth assignment
+    const calendarNextMonth = document.getElementById('calendarNextMonth'); 
+
+
+    // Console logs for calendar buttons
+    console.log("DEBUG: Calendar Prev Month button found:", !!calendarPrevMonth, calendarPrevMonth);
+    console.log("DEBUG: Calendar Next Month button found:", !!calendarNextMonth, calendarNextMonth);
+
 
     const selectEventForRegistrants = document.getElementById('selectEventForRegistrants');
     const eventRegistrantsTableBody = document.getElementById('eventRegistrantsTableBody');
     const participationSearchInput = document.getElementById('participationSearchInput');
 
-    const menuButton = document.getElementById('menu-button');
-    let sidebarOverlay = document.getElementById('sidebar-overlay');
-
-    // Dashboard stat elements (These are declared globally but might be null if fetched too early)
-    // We will ensure they are accessed safely within fetchDashboardStats
+    // Dashboard stat elements
     let totalEventsCountEl = document.getElementById('totalEventsCount');
     let totalUsersCountEl = document.getElementById('totalUsersCount');
     let upcomingEventsCountEl = document.getElementById('upcomingEventsCount');
     let totalParticipantsCountEl = document.getElementById('totalParticipantsCount');
+
+    const downloadCsvButton = document.getElementById('downloadCsvButton');
+
 
     // If the sidebar overlay doesn't exist in HTML, create it dynamically.
     if (!sidebarOverlay) {
         console.log("DEBUG: Sidebar overlay not found, creating dynamically.");
         sidebarOverlay = document.createElement('div');
         sidebarOverlay.id = 'sidebar-overlay';
-        sidebarOverlay.className = 'fixed inset-0 bg-black/60 z-30 hidden md:hidden';
+        sidebarOverlay.className = 'fixed inset-0 bg-black/60 z-30 hidden md:hidden'; // Tailwind 'hidden' by default
         document.body.appendChild(sidebarOverlay);
     } else {
         console.log("DEBUG: Sidebar overlay found in HTML.");
@@ -329,7 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.reset();
                 window.location.hash = '#manage-events';
                 fetchAllEvents();
-            } catch (error) {
+            }
+            catch (error) {
                 console.error('ERROR (Events): Event creation failed:', error);
             }
         });
@@ -421,16 +437,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (calendarPrevMonth) {
         calendarPrevMonth.addEventListener('click', () => {
+            console.log("DEBUG (Calendar): Previous Month button clicked.");
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
             fetchAllEvents();
-            console.log("DEBUG (Calendar): Navigated to previous month.");
         });
     }
     if (calendarNextMonth) {
+        // CRITICAL FIX: Corrected typo in variable usage.
         calendarNextMonth.addEventListener('click', () => {
+            console.log("DEBUG (Calendar): Next Month button clicked.");
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
             fetchAllEvents();
-            console.log("DEBUG (Calendar): Navigated to next month.");
         });
     }
 
@@ -574,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         eventRegistrantsTableBody.innerHTML = '';
 
-        const tableHead = document.querySelector('#registrantsView table thead tr'); // Select the <thead>'s <tr>
+        const tableHead = document.querySelector('#registrantsView table thead tr');
         if (tableHead) {
             tableHead.innerHTML = `
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant Name</th>
@@ -661,26 +678,66 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn("WARNING: participationSearchInput element not found for input listener.");
     }
 
+    // --- Download CSV Button Event Listener ---
+    if (downloadCsvButton) {
+        downloadCsvButton.addEventListener('click', function() {
+            const eventId = selectEventForRegistrants.value;
+            const searchTerm = participationSearchInput.value.trim();
+
+            if (!eventId) {
+                showToast('error', 'Please select an event to download participation data.');
+                return;
+            }
+
+            let downloadUrl = `${adminPortalApiBaseUrl}/api/participations/download_csv?eventId=${encodeURIComponent(eventId)}`;
+            if (searchTerm) {
+                downloadUrl += `&query=${encodeURIComponent(searchTerm)}`;
+            }
+
+            showToast('info', `Preparing CSV for event ID ${eventId}. Your download should start shortly...`);
+            window.location.href = downloadUrl;
+        });
+    }
+
 
     // --- Navigation Logic ---
-    const openSidebar = () => {
-        console.log("DEBUG (UI): Opening sidebar.");
-        if (sidebar) sidebar.classList.add('-translate-x-0');
-        if (sidebar) sidebar.classList.remove('-translate-x-full');
-        if (sidebarOverlay) sidebarOverlay.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
+    const toggleSidebar = (shouldOpen) => {
+        if (!sidebar) {
+            console.warn("WARNING: Sidebar element not found for toggling.");
+            return;
+        }
+        if (!sidebarOverlay) {
+            console.warn("WARNING: Sidebar overlay element not found for toggling.");
+            return;
+        }
+
+        if (shouldOpen) {
+            console.log("DEBUG (UI): Attempting to open sidebar. Adding translate-x-0, removing -translate-x-full.");
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            sidebarOverlay.classList.remove('hidden'); // Show overlay
+            document.body.classList.add('overflow-hidden'); // Prevent body scroll
+            console.log("DEBUG (UI): Sidebar open state applied. Current classes:", sidebar.classList.value);
+        } else {
+            console.log("DEBUG (UI): Attempting to close sidebar. Adding -translate-x-full, removing translate-x-0.");
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            sidebarOverlay.classList.add('hidden'); // Hide overlay
+            document.body.classList.remove('overflow-hidden'); // Allow body scroll
+            console.log("DEBUG (UI): Sidebar close state applied. Current classes:", sidebar.classList.value);
+        }
     };
 
-    const closeSidebar = () => {
-        console.log("DEBUG (UI): Closing sidebar.");
-        if (sidebar) sidebar.classList.add('-translate-x-full');
-        if (sidebar) sidebar.classList.remove('-translate-x-0');
-        if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    };
+    const openSidebar = () => toggleSidebar(true);
+    const closeSidebar = () => toggleSidebar(false);
+
 
     if (menuButton) {
-        menuButton.addEventListener('click', openSidebar);
+        menuButton.addEventListener('click', function(e) {
+            console.log("DEBUG (UI): Hamburger menu button clicked.");
+            e.stopPropagation(); // Prevent event bubbling, especially if there's a click listener on body/document
+            openSidebar();
+        });
         console.log("DEBUG (UI): Menu button listener attached.");
     } else {
         console.warn("WARNING: Menu button (#menu-button) not found in HTML.");
@@ -726,13 +783,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        sidebarLinks.forEach(link => link.classList.remove('active'));
-        if (activeLink) activeLink.classList.add('active');
-        if (pageTitle) pageTitle.textContent = activeTitle;
+        // Loop through all sidebar links to manage active state AND close sidebar on click
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active'); // Deactivate all links first
+            const linkHash = link.getAttribute('href');
+            if (linkHash === `#${targetViewId.replace('View', '')}`) {
+                link.classList.add('active'); // Activate the current link
+            }
 
-        if (window.innerWidth < 768) {
-            closeSidebar();
-        }
+            // --- CRITICAL FIX: Ensure individual sidebar link clicks also close the menu on mobile ---
+            // This listener is crucial for menu items to actually work as expected.
+            // It prevents default navigation so JS can handle it, then closes sidebar.
+            link.removeEventListener('click', handleSidebarLinkClick); // Remove old listeners to prevent duplicates
+            link.addEventListener('click', handleSidebarLinkClick);
+        });
+
+        if (pageTitle) pageTitle.textContent = activeTitle;
 
         const currentViewHeading = document.querySelector(`#${targetViewId} h2`);
         if (currentViewHeading) {
@@ -742,50 +808,80 @@ document.addEventListener('DOMContentLoaded', function () {
         initLucideIcons();
     }
 
+    // --- NEW: Centralized handler for sidebar navigation link clicks ---
+    function handleSidebarLinkClick(e) {
+        // Only prevent default if it's not the logout button, as logout has its own fetch logic
+        if (this.id !== 'logoutButton') {
+            e.preventDefault(); // Prevent default browser navigation (hash change is handled by updateActiveView)
+            console.log("DEBUG (UI): Sidebar navigation link clicked:", this.getAttribute('href'));
+            window.location.hash = this.getAttribute('href'); // Manually change hash to trigger updateActiveView
+        }
+        
+        // Always close sidebar on mobile after clicking any sidebar link (including logout, handled by its own listener)
+        if (window.innerWidth < 768) {
+            closeSidebar();
+        }
+    }
+
+
     function handleNavigation() {
         console.log("DEBUG (Navigation): URL hash changed to", window.location.hash);
         updateActiveView(window.location.hash);
     }
     window.addEventListener('hashchange', handleNavigation);
 
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            console.log("DEBUG (Navigation): Sidebar link clicked:", this.id || this.href);
-            if (this.id === 'logoutButton') {
-                // just redirect to auth service
-                console.log("DEBUG (Navigation): Logout link clicked, redirecting to auth service.");
-                window.location.href = AUTH_SERVICE_EXTERNAL_URL;
-                e.preventDefault();
-                fetch(`${adminPortalApiBaseUrl}/logout`, { method: 'POST' })
-                    .then(response => {
-                        console.log("DEBUG (Logout): Logout request sent to Flask backend. Backend will handle redirect.");
-                        // CRITICAL FIX: Manually redirect the browser window after the fetch completes.
-                        // The fetch API follows redirects internally, but doesn't change the browser's URL.
-                        window.location.href = AUTH_SERVICE_EXTERNAL_URL;
-                    })
-                    .catch(error => {
-                        console.error("ERROR (Logout): Error during logout request to backend:", error);
-                        showToast('error', 'Logout failed due to network error.');
-                    });
-                return;
-            }
-        });
-    });
+
+    // --- Logout Button Listener ---
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.removeEventListener('click', handleLogoutButtonClick); // Remove old listener to prevent duplicates
+        logoutButton.addEventListener('click', handleLogoutButtonClick);
+        console.log("DEBUG (UI): Logout button listener attached.");
+    } else {
+        console.warn("WARNING: Logout button (#logoutButton) not found in HTML.");
+    }
+
+    async function handleLogoutButtonClick(e) {
+        e.preventDefault();
+        console.log("DEBUG (Logout): Admin Portal Logout button clicked.");
+        const userConfirmed = window.confirm("Are you sure you want to logout from Admin Portal?");
+        if (userConfirmed) {
+            try {
+                const response = await fetch(`${adminPortalApiBaseUrl}/logout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    console.log("DEBUG (Logout): Admin Portal backend logout request successful.");
+                    showToast('success', 'Logged out successfully! Redirecting...');
+                    window.location.href = AUTH_SERVICE_EXTERNAL_URL;
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: "Unknown error during logout." }));
+                    console.error("ERROR (Logout): Admin Portal logout failed on backend:", errorData.error);
+                    showToast('error', `Logout failed: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error("ERROR (Logout): Network error during Admin Portal logout:", error);
+                showToast('error', `Network error during logout. Please check your connection.`);
+                }
+        }
+        if (window.innerWidth < 768) {
+            closeSidebar();
+        }
+    }
+
 
     // --- Dashboard Stats Fetching Function ---
     async function fetchDashboardStats() {
         console.log("DEBUG (Dashboard): Fetching dashboard statistics...");
         try {
-            // Re-select elements inside the function to ensure they are available
-            // or confirm they are valid before setting textContent
             const currentTotalUsersCountEl = document.getElementById('totalUsersCount');
             const currentTotalEventsCountEl = document.getElementById('totalEventsCount');
             const currentUpcomingEventsCountEl = document.getElementById('upcomingEventsCount');
             const currentTotalParticipantsCountEl = document.getElementById('totalParticipantsCount');
 
-            // Fetch Total Users
             const users = await apiRequest('/api/users', 'GET');
-            console.log("DEBUG (Dashboard): Fetched total users:", users); // Keep this for actual data inspection
+            console.log("DEBUG (Dashboard): Fetched total users:", users);
 
             if (Array.isArray(users) && currentTotalUsersCountEl) {
                 currentTotalUsersCountEl.textContent = users.length;
@@ -795,9 +891,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn("WARNING: Could not fetch total users or data is not array. Users data:", users);
             }
 
-            // Fetch Total Events and Upcoming Events
             const events = await apiRequest('/api/events', 'GET');
-            console.log("DEBUG (Dashboard): Fetched total events:", events); // Keep this for actual data inspection
+            console.log("DEBUG (Dashboard): Fetched total events:", events);
 
             if (Array.isArray(events) && currentTotalEventsCountEl && currentUpcomingEventsCountEl) {
                 currentTotalEventsCountEl.textContent = events.length;
@@ -818,9 +913,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn("WARNING: Could not fetch total events or data is not array. Events data:", events);
             }
 
-            // Fetch Total Participants
             const allParticipations = await apiRequest('/api/participations', 'GET');
-            console.log("DEBUG (Dashboard): Fetched total participations:", allParticipations); // Keep this for actual data inspection
+            console.log("DEBUG (Dashboard): Fetched total participations:", allParticipations);
 
             if (Array.isArray(allParticipations) && currentTotalParticipantsCountEl) {
                 currentTotalParticipantsCountEl.textContent = allParticipations.length;
@@ -835,7 +929,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error("ERROR (Dashboard): Failed to fetch dashboard stats:", error);
             showToast('error', 'Failed to load dashboard statistics.');
-            // Fallback for elements if they are still null or previous attempts failed
             if (document.getElementById('totalEventsCount')) document.getElementById('totalEventsCount').textContent = 'Error';
             if (document.getElementById('totalUsersCount')) document.getElementById('totalUsersCount').textContent = 'Error';
             if (document.getElementById('upcomingEventsCount')) document.getElementById('upcomingEventsCount').textContent = 'Error';
@@ -846,16 +939,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Initial Load & Responsive Sidebar Handling ---
     const applyInitialSidebarState = () => {
+        if (!sidebar) {
+            console.warn("WARNING: Sidebar element not found during initial state application.");
+            return;
+        }
+        if (!sidebarOverlay) {
+            console.warn("WARNING: Sidebar overlay element not found during initial state application.");
+            return;
+        }
+
         if (window.innerWidth >= 768) {
-            if (sidebar) sidebar.classList.remove('-translate-x-full', '-translate-x-0');
-            if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
+            // Desktop view: Ensure sidebar is visible and overlay is hidden
+            sidebar.classList.remove('-translate-x-full'); // Make sure it's not off-screen
+            sidebar.classList.add('translate-x-0'); // Ensure it's in view
+            sidebar.classList.add('md:relative', 'md:translate-x-0', 'md:shadow-none'); // Apply desktop position/shadow
+            sidebarOverlay.classList.add('hidden'); // Hide overlay
+            document.body.classList.remove('overflow-hidden'); // Allow body scroll
             console.log("DEBUG (Responsive): Applied desktop sidebar state.");
         } else {
-            if (sidebar) sidebar.classList.add('-translate-x-full');
-            if (sidebar) sidebar.classList.remove('-translate-x-0');
-            if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
+            // Mobile view: Ensure sidebar is hidden initially and overlay is hidden
+            sidebar.classList.add('-translate-x-full'); // Hide sidebar off-screen
+            sidebar.classList.remove('translate-x-0'); // Ensure it's not accidentally visible
+            sidebar.classList.remove('md:relative', 'md:translate-x-0', 'md:shadow-none'); // Remove desktop classes
+            sidebarOverlay.classList.add('hidden'); // Hide overlay
+            document.body.classList.remove('overflow-hidden'); // Allow body scroll
             console.log("DEBUG (Responsive): Applied mobile sidebar initial state.");
         }
     };

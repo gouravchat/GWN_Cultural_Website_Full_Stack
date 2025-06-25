@@ -2,7 +2,9 @@ import os
 import json
 import logging
 import requests
-from flask import Flask, render_template, jsonify, send_from_directory, request, redirect
+import csv # Import the csv module
+from io import StringIO # Import StringIO for in-memory CSV creation
+from flask import Flask, render_template, jsonify, send_from_directory, request, redirect, Response # Import Response for CSV download
 
 # --- Basic Logging Configuration ---
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -63,7 +65,6 @@ def handle_events():
     try:
         if request.method == 'GET':
             app_logger.info("Admin Portal: Attempting to fetch all events from Event Service.")
-            # CRITICAL FIX: Ensure GET call to Event Service uses /events/events
             response = requests.get(f"{EVENT_SERVICE_URL}/events/events", timeout=10)
             response.raise_for_status()
             app_logger.info(f"Successfully fetched events. Status: {response.status_code}")
@@ -80,13 +81,16 @@ def handle_events():
             if headers.get('Authorization'):
                 app_logger.debug(f"Forwarding Authorization header: {headers['Authorization']}")
 
-            # CRITICAL FIX: Ensure POST call to Event Service uses /events/events
             response = requests.post(f"{EVENT_SERVICE_URL}/events/events", data=data, files=files, headers=headers, timeout=10)
             response.raise_for_status()
             app_logger.info(f"Event creation successful. Status: {response.status_code}")
             return jsonify(response.json()), response.status_code
         elif request.method == 'DELETE':
-            event_id = request.path.split('/')[-1] # Extract ID from URL path
+            event_id = request.path.split('/')[-1]
+            if not event_id.isdigit():
+                app_logger.error(f"Invalid event ID for delete: {event_id}")
+                return jsonify({"error": "Invalid event ID provided for deletion."}), 400
+                
             app_logger.info(f"Admin Portal: Attempting to delete event {event_id} via Event Service.")
             response = requests.delete(f"{EVENT_SERVICE_URL}/events/events/{event_id}", timeout=10)
             response.raise_for_status()
@@ -117,9 +121,24 @@ def get_all_users():
 
         app_logger.info(f"Admin Portal: Attempting to fetch users from DB API Service at URL: '{url}' with params: {params}")
         response = requests.get(url, params=params, timeout=10)
+        
+        app_logger.debug(f"DB API Response Status for users: {response.status_code}")
+        app_logger.debug(f"DB API Response Headers for users: {response.headers}")
+        app_logger.debug(f"DB API Response Text for users: {response.text}")
+
         response.raise_for_status()
-        app_logger.info(f"Successfully fetched users from DB API. Status: {response.status_code}. Data preview: {str(response.json())[:100]}...")
-        return jsonify(response.json()), response.status_code
+
+        users_data = response.json()
+        
+        if not isinstance(users_data, list):
+            app_logger.warning(f"DB API for users returned non-list data (type: {type(users_data)}). Converting to list.")
+            if isinstance(users_data, dict):
+                users_data = [users_data]
+            else:
+                users_data = []
+
+        app_logger.info(f"Successfully fetched {len(users_data)} users from DB API. Data preview: {str(users_data)[:100]}...")
+        return jsonify(users_data), response.status_code
     except requests.exceptions.RequestException as e:
         app_logger.error(f"Error fetching users via DB API Service: {e}. Details: {e.response.text if e.response else 'No response body'}", exc_info=True)
         status_code = e.response.status_code if e.response is not None else 503
@@ -130,6 +149,9 @@ def get_all_users():
         except (json.JSONDecodeError, AttributeError):
             pass
         return jsonify({"error": error_message}), status_code
+    except json.JSONDecodeError as e:
+        app_logger.error(f"Failed to decode JSON from DB API response: {e}. Raw response: {response.text}", exc_info=True)
+        return jsonify({"error": "Failed to parse user data from DB API. Invalid JSON response."}), 500
     except Exception as e:
         app_logger.critical(f"Unhandled error in get_all_users: {e}", exc_info=True)
         return jsonify({"error": f"An unexpected internal server error occurred: {str(e)}"}), 500
@@ -143,14 +165,13 @@ def get_participations():
         search_query = request.args.get('query', '').lower()
 
         # Step 1: Fetch ALL participations from the Participation Service
-        url = f"{PARTICIPATION_SERVICE_URL}/participations" # No eventId param here, fetch all
+        url = f"{PARTICIPATION_SERVICE_URL}/participations"
         app_logger.info(f"Admin Portal: Fetching ALL participations from Participation Service at URL: '{url}'")
         response = requests.get(url, timeout=10)
-        response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
 
         all_participations = response.json()
         if not isinstance(all_participations, list):
-            # Handle cases where the API might return a single object or non-list
             app_logger.warning(f"Participation Service returned non-list data: {type(all_participations)}. Attempting to convert.")
             all_participations = [all_participations] if isinstance(all_participations, dict) else []
 
@@ -159,13 +180,10 @@ def get_participations():
         # Step 2: Filter participations based on requested_event_id and search_query
         filtered_participations = []
         for p in all_participations:
-            # Filter by event_id if provided by the frontend
             if requested_event_id and p.get('event_id') != requested_event_id:
-                continue # Skip if event_id doesn't match
+                continue
 
-            # Apply search query filter
             if search_query:
-                # Assuming search on user_name, email_id, tower, flat_no
                 match = False
                 if p.get('user_name') and search_query in p['user_name'].lower():
                     match = True
@@ -177,7 +195,7 @@ def get_participations():
                     match = True
                 
                 if not match:
-                    continue # Skip if no search query match
+                    continue
 
             filtered_participations.append(p)
         
@@ -200,13 +218,124 @@ def get_participations():
 
 
 # ==============================================================================
+# == NEW: CSV DUMP ENDPOINT FOR PARTICIPATIONS
+# ==============================================================================
+@app.route(f'{ADMIN_PORTAL_SCRIPT_NAME}/api/participations/download_csv', methods=['GET'])
+def download_participations_csv():
+    app_logger.debug(f"Request received for /api/participations/download_csv with query params: {request.args}")
+    try:
+        requested_event_id = request.args.get('eventId', type=int)
+        search_query = request.args.get('query', '').lower()
+
+        if not requested_event_id:
+            return jsonify({"error": "Event ID is required to download participation CSV."}), 400
+
+        # Reuse the logic from get_participations to fetch filtered data
+        # We call it directly here, but ensure it returns the raw list of dicts.
+        # Alternatively, refactor get_participations to be a helper function.
+        # For simplicity, we'll adapt by calling the Participation_Service directly here as well,
+        # and then filtering. This avoids circular dependencies if get_participations was to change.
+
+        # Fetch ALL participations (or potentially filter at source if Participation_Service supports it)
+        url = f"{PARTICIPATION_SERVICE_URL}/participations"
+        app_logger.info(f"Admin Portal CSV: Fetching ALL participations from Participation Service for CSV generation at '{url}'")
+        response = requests.get(url, timeout=15) # Increased timeout for potentially large data
+        response.raise_for_status()
+        all_participations = response.json()
+
+        if not isinstance(all_participations, list):
+            all_participations = [all_participations] if isinstance(all_participations, dict) else []
+
+        # Apply filtering for requested_event_id and search_query
+        filtered_participations = []
+        for p in all_participations:
+            if p.get('event_id') != requested_event_id:
+                continue
+
+            if search_query:
+                match = False
+                if p.get('user_name') and search_query in p['user_name'].lower():
+                    match = True
+                elif p.get('email_id') and search_query in p['email_id'].lower():
+                    match = True
+                elif p.get('tower') and search_query in p['tower'].lower():
+                    match = True
+                elif p.get('flat_no') and search_query in p['flat_no'].lower():
+                    match = True
+                
+                if not match:
+                    continue
+            filtered_participations.append(p)
+        
+        if not filtered_participations:
+            return jsonify({"message": f"No participation data found for event ID {requested_event_id} with given filters."}), 200
+
+        # Define CSV headers (order matters for CSV output)
+        # These headers should match the keys in your participation dictionaries
+        fieldnames = [
+            "id", "user_id", "user_name", "email_id", "phone_number",
+            "event_id", "event_date", "tower", "flat_no",
+            "num_tickets", "veg_heads", "non_veg_heads",
+            "total_payable", "amount_paid", "payment_remaining",
+            "additional_contribution", "contribution_comments",
+            "status", "transaction_id", "registered_at", "updated_at"
+        ]
+        
+        # Create an in-memory text buffer for the CSV data
+        output = StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+
+        writer.writeheader() # Write the header row
+        for row in filtered_participations:
+            # Ensure all keys from fieldnames exist in row, provide empty string if missing
+            cleaned_row = {field: row.get(field, '') for field in fieldnames}
+            writer.writerow(cleaned_row)
+        
+        csv_output = output.getvalue()
+        output.close()
+
+        # Set response headers for file download
+        filename = f"participations_event_{requested_event_id}.csv"
+        response = Response(
+            csv_output,
+            mimetype="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+        app_logger.info(f"Generated CSV for event ID {requested_event_id}. Size: {len(csv_output)} bytes.")
+        return response
+
+    except requests.exceptions.RequestException as e:
+        app_logger.error(f"Error fetching data for CSV via Participation Service: {e}. Details: {e.response.text if e.response else 'No response body'}", exc_info=True)
+        status_code = e.response.status_code if e.response is not None else 503
+        error_message = f"Participation service unavailable or API error during CSV generation: {str(e)}"
+        try:
+            error_details = e.response.json()
+            error_message = error_details.get("error", error_message)
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return jsonify({"error": error_message}), status_code
+    except Exception as e:
+        app_logger.critical(f"Unhandled error in download_participations_csv: {e}", exc_info=True)
+        return jsonify({"error": f"An unexpected internal server error occurred during CSV generation: {str(e)}"}), 500
+
+
+# ==============================================================================
 # == LOGOUT ENDPOINT (Similar to User Portal's logout flow)
 # ==============================================================================
 
 @app.route(f'{ADMIN_PORTAL_SCRIPT_NAME}/logout', methods=['GET', 'POST'])
 def logout():
     app_logger.info(f"Admin is logging out. Redirecting to external Auth Service: {AUTH_SERVICE_EXTERNAL_URL}.")
-    return redirect(AUTH_SERVICE_EXTERNAL_URL)
+    # IMPORTANT: As per latest script.js, this endpoint returns JSON,
+    # and JS handles the browser redirect. So, this Flask redirect is technically
+    # not directly used by the frontend for navigation anymore, but it's fine.
+    # The actual redirect is handled client-side.
+    return jsonify({"message": "Logout successful on Admin Portal backend."}), 200 # Return JSON for client-side fetch
 
 
 # ==============================================================================
@@ -221,4 +350,4 @@ def admin_portal_home():
     )
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5006,debug=True)
+    app.run(host='0.0.0.0', port=5003, debug=True)

@@ -22,123 +22,121 @@ body {
 }
 
 /* Base layout for mobile: sidebar hidden by default, main content takes full width */
-/* On medium screens (md) and up, sidebar is visible and main content shifts */
-.h-screen.flex { /* Applies to the body container */
-    flex-direction: column; /* Stacks sidebar and main content vertically on small screens */
-}
 
-aside.w-64 { /* Sidebar */
+/* Mobile Sidebar Specifics (Default state for mobile) */
+aside { /* Target the aside element */
     position: fixed; /* Fixed position for mobile overlay */
     top: 0;
     bottom: 0;
     left: 0;
-    z-index: 40; /* High z-index to overlay content */
-    transform: translateX(-100%); /* Hidden by default on mobile */
+    z-index: 50; /* Higher z-index than overlay (40) and header (50 for header content, but sidebar must be on top) */
+    width: 100%; /* Take full width on mobile when active (max-width handles actual size) */
+    max-width: 256px; /* Limit to 64 Tailwind units when opened, for larger phones */
+    transform: translateX(-100%); /* HIDDEN by default on mobile */
     transition: transform 0.3s ease-in-out; /* Smooth slide in/out */
     box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Shadow for visual separation */
-    width: 100%; /* Take full width on mobile when active */
-    max-width: 256px; /* But limit to 64 Tailwind units when opened, for larger phones */
+    display: flex; /* Ensure it's a flex container for its content */
+    flex-direction: column; /* Stack its content vertically */
+    background-color: #1f2937; /* Ensure sidebar has a background color to be visible (Tailwind gray-800) */
 }
 
-aside.w-64.open { /* Class added by JS when sidebar is active on mobile */
-    transform: translateX(0);
+/* Class added by JS when sidebar is active on mobile */
+/* This overrides the -translate-x-full to make it visible */
+aside.translate-x-0 {
+    transform: translateX(0) !important; /* !important to ensure it overrides everything */
 }
 
+
+/* Mobile Header (the one with the hamburger button) */
+header {
+    z-index: 60; /* Ensure header is above sidebar if needed, but not behind overlay */
+}
+
+/* Desktop Sidebar (md breakpoint and up) */
 @media (min-width: 768px) { /* md breakpoint and up */
-    .h-screen.flex {
-        flex-direction: row; /* Horizontal layout on larger screens */
-    }
-    aside.w-64 {
-        position: relative; /* No longer fixed */
-        transform: translateX(0); /* Always visible */
-        width: 16rem; /* Tailwind w-64 */
-        min-width: 16rem; /* Prevent shrinking */
-        max-width: 16rem; /* Prevent expanding */
-        box-shadow: none; /* No shadow */
-    }
-    main.md\\:ml-64 { /* Margin to offset sidebar on desktop */
-        margin-left: 16rem; /* Equivalent to md:ml-64 */
-    }
-    .mobile-header { /* Hide mobile header on larger screens */
-        display: none;
-    }
-    .desktop-header-spacing { /* Adjust main content padding for desktop */
-        padding-top: 0; /* No need for top padding for fixed mobile header */
+    aside {
+        position: relative !important; /* Override fixed, always relative on desktop */
+        transform: translateX(0) !important; /* Always visible on desktop */
+        width: 16rem !important; /* Tailwind w-64 */
+        min-width: 16rem !important; /* Prevent shrinking */
+        max-width: 16rem !important; /* Prevent expanding */
+        box-shadow: none !important; /* No shadow */
+        z-index: auto !important; /* Reset z-index for desktop flow */
     }
 }
+
 
 /* Overlay for mobile sidebar */
 #sidebar-overlay {
     position: fixed;
     inset: 0; /* top, right, bottom, left 0 */
     background-color: rgba(0,0,0,0.6);
-    z-index: 30; /* Below sidebar, above main content */
+    z-index: 40; /* Must be lower than sidebar's z-index (50) */
+    /* The 'hidden' Tailwind class will be toggled by JS. No other CSS needed here */
 }
 
-/* Adjust main content padding for mobile when no sidebar overlay (not applicable due to current layout) */
-/* The main content header will handle mobile spacing. */
 
-/* Styling for the calendar */
+/* Styling for the calendar (existing, unchanged) */
 .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 0.25rem; /* Tailwind gap-1 */
-    border: 1px solid #e2e8f0; /* Tailwind gray-300 */
-    border-radius: 0.5rem; /* Tailwind rounded-lg */
-    padding: 0.5rem; /* Tailwind p-2 */
+    gap: 0.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
 }
 .calendar-header {
     text-align: center;
-    font-weight: 600; /* Tailwind semibold */
-    padding: 0.5rem; /* Tailwind p-2 */
-    background-color: #f3f4f6; /* Tailwind gray-100 */
-    border-radius: 0.375rem; /* Tailwind rounded-md */
-    font-size: 0.875rem; /* text-sm */
+    font-weight: 600;
+    padding: 0.5rem;
+    background-color: #f3f4f6;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
 }
 .calendar-day {
-    border: 1px solid #e5e7eb; /* Tailwind gray-200 */
-    padding: 0.5rem; /* Tailwind p-2 */
-    min-height: 80px; /* Adjust height for mobile if needed, but flex will handle content */
-    border-radius: 0.375rem; /* Tailwind rounded-md */
-    background-color: #ffffff; /* Tailwind bg-white */
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    min-height: 80px;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
     transition: background-color 0.2s;
-    font-size: 0.875rem; /* Tailwind text-sm */
+    font-size: 0.875rem;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     position: relative;
 }
 .calendar-day.other-month {
-    background-color: #f9fafb; /* Tailwind gray-50 */
-    color: #9ca3af; /* Tailwind gray-400 */
+    background-color: #f9fafb;
+    color: #9ca3af;
 }
 .calendar-day.today {
-    background-color: #eff6ff; /* Tailwind blue-50 */
-    border: 1px solid #93c5fd; /* Tailwind blue-300 */
+    background-color: #eff6ff;
+    border: 1px solid #93c5fd;
 }
 .calendar-day:hover:not(.other-month) {
-    background-color: #f3f4f6; /* Tailwind gray-100 */
+    background-color: #f3f4f6;
 }
 .calendar-day .day-number {
-    font-weight: 500; /* Tailwind medium */
-    margin-bottom: 0.25rem; /* Tailwind mb-1 */
-    align-self: flex-end; /* Position day number to top right */
-    padding: 0.125rem 0.25rem; /* p-0.5 px-1 */
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    align-self: flex-end;
+    padding: 0.125rem 0.25rem;
 }
 .calendar-day.today .day-number {
-    font-weight: 700; /* Tailwind bold */
-    color: #2563eb; /* Tailwind blue-600 */
+    font-weight: 700;
+    color: #2563eb;
 }
 
 .calendar-day .event {
-    font-size: 0.7rem; /* Slightly smaller text for events */
-    background-color: #3b82f6; /* Tailwind blue-500 */
+    font-size: 0.7rem;
+    background-color: #3b82f6;
     color: white;
-    padding: 0.125rem 0.375rem; /* py-0.5 px-1.5 */
-    border-radius: 9999px; /* Tailwind rounded-full for pill shape */
-    margin-top: 0.25rem; /* Tailwind mt-1 */
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    margin-top: 0.25rem;
     display: block;
-    width: calc(100% - 0.5rem); /* Adjust width considering padding */
+    width: calc(100% - 0.5rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -146,86 +144,85 @@ aside.w-64.open { /* Class added by JS when sidebar is active on mobile */
     line-height: 1.2;
 }
 .calendar-day .event:hover {
-    background-color: #2563eb; /* Tailwind blue-600 */
+    background-color: #2563eb;
 }
 .calendar-day .events-container {
-    max-height: 50px; /* Limit height for events, enable scroll if needed */
+    max-height: 50px;
     overflow-y: auto;
     width: 100%;
 }
 
 
-/* Responsive tables: Make tables scroll horizontally on small screens */
+/* Responsive tables (existing, unchanged) */
 .table-responsive {
     overflow-x: auto;
     max-width: 100%;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Ensure table cells don't shrink too much, especially for text */
 .table-responsive table {
-    min-width: 600px; /* Minimum width for tables to prevent excessive squishing */
-    width: 100%; /* Ensure it takes available width within its container */
-    white-space: nowrap; /* Prevent text wrapping in cells by default, allowing horizontal scroll */
+    min-width: 600px;
+    width: 100%;
+    white-space: nowrap;
 }
 
 .table-responsive th,
 .table-responsive td {
-    padding: 0.75rem 1rem; /* Adjust padding for readability */
-    vertical-align: middle; /* Center content vertically */
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
 }
 
 
-/* Styles for message box */
+/* Styles for message box (existing, unchanged) */
 .message-box {
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 1rem 1.5rem; /* Tailwind p-4 px-6 */
-    border-radius: 0.5rem; /* Tailwind rounded-lg */
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
     color: white;
-    z-index: 1050; /* Ensure it's above most other elements */
+    z-index: 1050;
     display: flex;
     align-items: center;
-    gap: 0.75rem; /* Tailwind gap-3 */
+    gap: 0.75rem;
     opacity: 0;
     transform: translateY(-20px);
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 .message-box.show {
     opacity: 1;
     transform: translateY(0);
 }
-.message-box.success { background-color: #22c55e; } /* Tailwind green-500 */
-.message-box.error { background-color: #ef4444; } /* Tailwind red-500 */
-.message-box.info { background-color: #3b82f6; } /* Tailwind blue-500 */
+.message-box.success { background-color: #22c55e; }
+.message-box.error { background-color: #ef4444; }
+.message-box.info { background-color: #3b82f6; }
 
-/* Active sidebar link style */
+/* Active sidebar link style (existing, unchanged) */
 .sidebar-link.active {
-    background-color: #3b82f6; /* Tailwind blue-500 */
+    background-color: #3b82f6;
     color: white;
 }
 .sidebar-link.active svg {
-    color: white !important; /* Ensure icon color changes */
+    color: white !important;
 }
 
-/* Tab styles (from user portal, but not actively used in admin portal's design yet) */
+/* Tab styles (existing, unchanged) */
 .tab-button {
-    padding: 0.75rem 1rem; /* Tailwind py-3 px-4 */
-    font-weight: 500; /* Tailwind medium */
-    color: #4b5563; /* Tailwind gray-600 */
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    color: #4b5563;
     border-bottom: 3px solid transparent;
     transition: color 0.2s, border-color 0.2s;
     cursor: pointer;
 }
 .tab-button:hover {
-    color: #1f2937; /* Tailwind gray-800 */
+    color: #1f2937;
 }
 .tab-button.active {
-    border-bottom-color: #3b82f6; /* Tailwind blue-500 */
-    color: #3b82f6; /* Tailwind blue-500 */
-    font-weight: 600; /* Tailwind semibold */
+    border-bottom-color: #3b82f6;
+    color: #3b82f6;
+    font-weight: 600;
 }
 .tab-content {
     display: none;
@@ -234,10 +231,7 @@ aside.w-64.open { /* Class added by JS when sidebar is active on mobile */
     display: block;
 }
 
-/* Responsive Forms: Ensure inputs stack on small screens and use full width */
+/* Responsive Forms: Ensure inputs stack on small screens and use full width (existing, unchanged) */
 form.space-y-4 > div {
-    width: 100%; /* Ensure form fields take full width */
+    width: 100%;
 }
-
-/* Responsive grid layouts (like dashboard cards): Tailwind already handles this well with grid-cols-1 md:grid-cols-2 etc. */
-/* No specific custom CSS needed here unless more complex custom grids are used. */
