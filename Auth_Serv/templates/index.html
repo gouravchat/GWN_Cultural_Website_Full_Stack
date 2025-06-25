@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Register</title>
+    <title>Login / Register (Greenoowd Nest- NACS-Users/Admins)</title>
     <!-- Use Flask's url_for to generate the correct path for static files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
-        <h1 id="formTitle">Login</h1>
+        <h1 id="formTitle">NACS User/Admin Login</h1>
         <form id="authForm">
             <div class="input-group login-field">
                 <label for="identifier">Username, Email, or Phone:</label>
@@ -34,7 +34,7 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            <button type="submit" id="submitButton">Login</button>
+            <button type="submit" id="submitButton">NACS User/Admin Login</button>
             <p id="message" class="message"></p>
         </form>
 

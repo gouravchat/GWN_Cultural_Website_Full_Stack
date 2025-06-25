@@ -5,6 +5,18 @@ version: '3.8'
 # All other services have their ports removed, so they are not directly
 # accessible from the public internet.
 
+# services running on different ports  ..let's list down
+# 1. Nginx Reverse Proxy (Public Facing)
+# 2. Frontend (Landing Page Service) - Port 8080 internally
+# 3. DB API (Database Service) - Port 5004 internally
+# 4. Auth API (Authentication Service) - Port 5002 internally
+# 5. Event Service - Port 5000 internally
+# 6. User Portal Service - Port 5001 internally
+# 7. Participation Service - Port 5005 internally
+# 8. ERS Service - Port 5007 internally
+# 9. Admin Portal Service - Port 5006 internally
+
+
 services:
   # 1. The Nginx Reverse Proxy (Public Facing)
   nginx:
@@ -129,6 +141,30 @@ services:
     depends_on:
       - db_api
       - event-service
+      - participation-service
+    networks:
+      - app-network
+
+  # admin portal service (takes  user db, event db, participation db)
+  admin-portal-service: # NEW: Admin Portal Service
+    build:
+      context: ./Admin_Portal_Service # Assuming your Admin Portal Flask app is in this directory
+    container_name: admin_portal_container
+    restart: unless-stopped
+    environment:
+      - FLASK_RUN_PORT=5006 # Internal port the Flask app runs on
+      - FLASK_SCRIPT_NAME=/admin-portal # This matches the Nginx location block
+      # Internal Docker network URLs for Admin Portal to communicate with other services
+      - EVENT_SERVICE_URL=http://event-service:5000
+      - AUTH_SERVICE_URL=http://auth_api:5002
+      - PARTICIPATION_SERVICE_URL=http://participation-service:5005
+      - DB_API_URL=http://db_api:5004 # Admin Portal talks to DB API
+      # External facing URLs passed for redirects (from Nginx/Host)
+      - AUTH_SERVICE_EXTERNAL_URL=https://${HOST_IP_OR_DOMAIN}/auth
+      - USER_PORTAL_EXTERNAL_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
+    depends_on:
+      - event-service
+      - auth_api
       - participation-service
     networks:
       - app-network

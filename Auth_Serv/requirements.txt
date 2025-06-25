@@ -1,5 +1,5 @@
-Flask
+Flask==2.3.3
 requests
 bcrypt # For password hashing
-gunicorn
 flask-cors # For handling CORS
+gunicorn

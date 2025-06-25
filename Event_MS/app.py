@@ -20,7 +20,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # --- Configuration for File Uploads ---
-# --- Configuration for File Uploads ---
 # CRITICAL CHANGE: Set UPLOAD_FOLDER to a sub-directory within the *persistent* volume (/app/data)
 # This path is relative to the app's WORKDIR (/app)
 UPLOAD_SUBDIR = 'event_photos' # Subdirectory name within /app/data
@@ -30,7 +29,6 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__fil
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -51,9 +49,13 @@ class Event(db.Model):
     cover_charges = db.Column(db.Float, default=0.0)
     cover_charges_type = db.Column(db.String(20), default='per_head')
 
-    food_charges = db.Column(db.Float, default=0.0)
-    food_type = db.Column(db.String(20), default='veg')
-    food_charges_type = db.Column(db.String(20), default='per_head')
+    # Veg Side
+    veg_food_charges = db.Column(db.Float, default=0.0)
+    veg_food_charges_type = db.Column(db.String(20), default='per_head')
+
+    # Non-Veg Side
+    non_veg_food_charges = db.Column(db.Float, default=0.0)
+    non_veg_food_charges_type = db.Column(db.String(20), default='per_head')
 
     created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -71,9 +73,10 @@ class Event(db.Model):
                 'coverChargesType': self.cover_charges_type,
             },
             'food': {
-                'foodCharges': self.food_charges,
-                'foodType': self.food_type,
-                'foodChargesType': self.food_charges_type,
+                'vegFoodCharges': self.veg_food_charges,
+                'vegFoodChargesType': self.veg_food_charges_type,
+                'nonVegFoodCharges': self.non_veg_food_charges,
+                'nonVegFoodChargesType': self.non_veg_food_charges_type,
             },
             'created_on': self.created_on.isoformat()
         }
@@ -129,9 +132,13 @@ def create_event():
     cover_charges_str = request.form.get('coverCharges', '0.0')
     cover_charges_type = request.form.get('coverChargesType', 'per_head')
 
-    food_charges_str = request.form.get('foodCharges', '0.0')
-    food_type = request.form.get('foodType', 'veg')
-    food_charges_type = request.form.get('foodChargesType', 'per_head')
+    # Food charges and types
+    veg_food_charges_str = request.form.get('vegFoodCharges', '0.0')
+    veg_food_charges_type = request.form.get('vegFoodChargesType', 'per_head')
+
+    # Non-Veg food charges and types
+    non_veg_food_charges_str = request.form.get('nonVegFoodCharges', '0.0') # Corrected: Removed extra parenthesis
+    non_veg_food_charges_type = request.form.get('nonVegFoodChargesType', 'per_head')
 
     required_fields = {'name', 'time', 'close_date', 'venue', 'details'}
     for field in required_fields:
@@ -148,18 +155,27 @@ def create_event():
     if cover_charges_type not in ['per_head', 'per_family']:
         return jsonify({"error": "Invalid value for 'coverChargesType'. Allowed: 'per_head', 'per_family'"}), 400
 
+    # Validation for veg_food_charges
     try:
-        food_charges = float(food_charges_str)
-        if food_charges < 0:
-            return jsonify({"error": "'foodCharges' cannot be negative."}), 400
+        veg_food_charges = float(veg_food_charges_str) # Corrected variable name from food_charges_str
+        if veg_food_charges < 0:
+            return jsonify({"error": "'vegFoodCharges' cannot be negative."}), 400
     except ValueError:
-        return jsonify({"error": "Invalid number format for 'foodCharges'."}), 400
+        return jsonify({"error": "Invalid number format for 'vegFoodCharges'."}), 400
 
-    if food_type not in ['veg', 'non_veg', 'both']:
-        return jsonify({"error": "Invalid value for 'foodType'. Allowed: 'veg', 'non_veg', 'both'"}), 400
+    if veg_food_charges_type not in ['per_head', 'per_family']:
+        return jsonify({"error": "Invalid value for 'vegFoodChargesType'. Allowed: 'per_head', 'per_family'"}), 400
 
-    if food_charges_type not in ['per_head', 'per_family']:
-        return jsonify({"error": "Invalid value for 'foodChargesType'. Allowed: 'per_head', 'per_family'"}), 400
+    # Validation for non_veg_food_charges
+    try:
+        non_veg_food_charges = float(non_veg_food_charges_str)
+        if non_veg_food_charges < 0:
+            return jsonify({"error": "'nonVegFoodCharges' cannot be negative."}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid number format for 'nonVegFoodCharges'."}), 400
+
+    if non_veg_food_charges_type not in ['per_head', 'per_family']:
+        return jsonify({"error": "Invalid value for 'nonVegFoodChargesType'. Allowed: 'per_head', 'per_family'"}), 400
 
     photo_url_to_save = None
     if 'photo' in request.files:
@@ -184,9 +200,11 @@ def create_event():
             details=details,
             cover_charges=cover_charges,
             cover_charges_type=cover_charges_type,
-            food_charges=food_charges,
-            food_type=food_type,
-            food_charges_type=food_charges_type,
+            # Corrected: Passed veg and non-veg food charges and types separately
+            veg_food_charges=veg_food_charges,
+            veg_food_charges_type=veg_food_charges_type,
+            non_veg_food_charges=non_veg_food_charges,
+            non_veg_food_charges_type=non_veg_food_charges_type,
             photo_url=photo_url_to_save
         )
         db.session.add(new_event)
@@ -195,7 +213,7 @@ def create_event():
         event_dict = new_event.to_dict()
         if event_dict['photo_url']:
             static_filename = event_dict['photo_url'].replace('/static/', '')
-            event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+            event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False)
         return jsonify({"message": "Event created successfully", "event": event_dict}), 201
     except Exception as e:
         db.session.rollback()
@@ -214,7 +232,7 @@ def get_all_events():
                 if event_dict['photo_url']:
                     if event_dict['photo_url'].startswith('/static/'):
                          static_filename = event_dict['photo_url'].replace('/static/', '')
-                         event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+                         event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False)
                 events_data.append(event_dict)
             return jsonify(events_data), 200
         else:
@@ -232,22 +250,15 @@ def get_event_by_id(event_id):
         event_dict = event.to_dict()
         if event_dict['photo_url'] and event_dict['photo_url'].startswith('/static/'):
              static_filename = event_dict['photo_url'].replace('/static/', '')
-             event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False) # Changed 'serve_static' to 'static'
+             event_dict['photo_url'] = url_for('static', filename=static_filename, _external=False)
         return jsonify(event_dict), 200
     except Exception as e:
         print(f"Error fetching event by ID {event_id}: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-# Explicitly define static route. Flask's constructor handles this when static_url_path is set.
-# Flask's built-in static handler expects paths relative to its static_folder.
-# So if the Nginx passes /events/static/photo.jpg, Flask sees /static/photo.jpg internally.
-# The @app.route needs to reflect that.
-# REMOVED: No prefix here for internal route
-@app.route('/static/<path:filename>') # <--- Uncommented this line
+@app.route('/static/<path:filename>')
 def serve_static(filename):
     """Serves static files (e.g., event photos) for the Event service."""
-    # This path is relative to the static_folder specified in Flask constructor.
-    # It will correctly handle requests like /static/event_photos/image.jpg internally.
     return send_from_directory(app.static_folder, filename)
 
 @app.route(f'{EVENT_SERVICE_SCRIPT_NAME}/events/<int:event_id>', methods=['DELETE']) # Delete event API

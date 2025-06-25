@@ -1,4 +1,4 @@
-/* Custom CSS for Admin Portal */
+/* Custom CSS for Admin Portal - Mobile Friendly Enhancements */
 body {
     font-family: 'Inter', sans-serif;
     overscroll-behavior: none; /* Prevents "overscroll" page refresh/navigation */
@@ -21,6 +21,63 @@ body {
     background: #718096; /* Darker grey thumb on hover (Tailwind gray-600) */
 }
 
+/* Base layout for mobile: sidebar hidden by default, main content takes full width */
+/* On medium screens (md) and up, sidebar is visible and main content shifts */
+.h-screen.flex { /* Applies to the body container */
+    flex-direction: column; /* Stacks sidebar and main content vertically on small screens */
+}
+
+aside.w-64 { /* Sidebar */
+    position: fixed; /* Fixed position for mobile overlay */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40; /* High z-index to overlay content */
+    transform: translateX(-100%); /* Hidden by default on mobile */
+    transition: transform 0.3s ease-in-out; /* Smooth slide in/out */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Shadow for visual separation */
+    width: 100%; /* Take full width on mobile when active */
+    max-width: 256px; /* But limit to 64 Tailwind units when opened, for larger phones */
+}
+
+aside.w-64.open { /* Class added by JS when sidebar is active on mobile */
+    transform: translateX(0);
+}
+
+@media (min-width: 768px) { /* md breakpoint and up */
+    .h-screen.flex {
+        flex-direction: row; /* Horizontal layout on larger screens */
+    }
+    aside.w-64 {
+        position: relative; /* No longer fixed */
+        transform: translateX(0); /* Always visible */
+        width: 16rem; /* Tailwind w-64 */
+        min-width: 16rem; /* Prevent shrinking */
+        max-width: 16rem; /* Prevent expanding */
+        box-shadow: none; /* No shadow */
+    }
+    main.md\\:ml-64 { /* Margin to offset sidebar on desktop */
+        margin-left: 16rem; /* Equivalent to md:ml-64 */
+    }
+    .mobile-header { /* Hide mobile header on larger screens */
+        display: none;
+    }
+    .desktop-header-spacing { /* Adjust main content padding for desktop */
+        padding-top: 0; /* No need for top padding for fixed mobile header */
+    }
+}
+
+/* Overlay for mobile sidebar */
+#sidebar-overlay {
+    position: fixed;
+    inset: 0; /* top, right, bottom, left 0 */
+    background-color: rgba(0,0,0,0.6);
+    z-index: 30; /* Below sidebar, above main content */
+}
+
+/* Adjust main content padding for mobile when no sidebar overlay (not applicable due to current layout) */
+/* The main content header will handle mobile spacing. */
+
 /* Styling for the calendar */
 .calendar {
     display: grid;
@@ -41,7 +98,7 @@ body {
 .calendar-day {
     border: 1px solid #e5e7eb; /* Tailwind gray-200 */
     padding: 0.5rem; /* Tailwind p-2 */
-    min-height: 80px;
+    min-height: 80px; /* Adjust height for mobile if needed, but flex will handle content */
     border-radius: 0.375rem; /* Tailwind rounded-md */
     background-color: #ffffff; /* Tailwind bg-white */
     transition: background-color 0.2s;
@@ -49,7 +106,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    position: relative; /* For absolute positioning of day number */
+    position: relative;
 }
 .calendar-day.other-month {
     background-color: #f9fafb; /* Tailwind gray-50 */
@@ -98,10 +155,27 @@ body {
 }
 
 
+/* Responsive tables: Make tables scroll horizontally on small screens */
 .table-responsive {
     overflow-x: auto;
     max-width: 100%;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
+
+/* Ensure table cells don't shrink too much, especially for text */
+.table-responsive table {
+    min-width: 600px; /* Minimum width for tables to prevent excessive squishing */
+    width: 100%; /* Ensure it takes available width within its container */
+    white-space: nowrap; /* Prevent text wrapping in cells by default, allowing horizontal scroll */
+}
+
+.table-responsive th,
+.table-responsive td {
+    padding: 0.75rem 1rem; /* Adjust padding for readability */
+    vertical-align: middle; /* Center content vertically */
+}
+
+
 /* Styles for message box */
 .message-box {
     position: fixed;
@@ -136,7 +210,7 @@ body {
     color: white !important; /* Ensure icon color changes */
 }
 
-/* Tab styles */
+/* Tab styles (from user portal, but not actively used in admin portal's design yet) */
 .tab-button {
     padding: 0.75rem 1rem; /* Tailwind py-3 px-4 */
     font-weight: 500; /* Tailwind medium */
@@ -160,49 +234,10 @@ body {
     display: block;
 }
 
-/*
-Tailwind's @apply directive is typically used within a Tailwind CSS build process.
-If you are using this style.css file directly without such a process,
-the @apply rules for form elements and buttons will not work.
-In that case, you should rely on applying Tailwind classes directly in your HTML
-or write out the full CSS equivalent for these elements.
-
-The HTML provided already applies Tailwind classes directly to form inputs and buttons.
-*/
-
-/* Example: Using Tailwind classes directly in HTML is preferred over these @apply rules in a static CSS file. */
-/*
-input[type="text"],
-input[type="date"],
-input[type="time"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-input[type="url"],
-textarea,
-select {
-    @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
-}
-label {
-    @apply block text-sm font-medium text-gray-700;
+/* Responsive Forms: Ensure inputs stack on small screens and use full width */
+form.space-y-4 > div {
+    width: 100%; /* Ensure form fields take full width */
 }
 
-.btn {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
-}
-.btn-primary {
-    @apply text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
-}
-.btn-secondary {
-    @apply text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-gray-400;
-}
-.btn-danger {
-    @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
-}
-.btn-icon {
-     @apply p-2;
-}
-.btn svg {
-    @apply w-5 h-5;
-}
-*/
+/* Responsive grid layouts (like dashboard cards): Tailwind already handles this well with grid-cols-1 md:grid-cols-2 etc. */
+/* No specific custom CSS needed here unless more complex custom grids are used. */

@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrCodeImage = document.getElementById('qrCodeImage');
     const participationList = document.getElementById('participation-list');
     const refreshParticipationsBtn = document.getElementById('refresh-participations');
-    const currentParticipationSection = document.getElementById('current-participation'); // This should be 'current-participation-list' based on your HTML
+    const currentParticipationSection = document.getElementById('current-participation-list'); // Corrected
     const addParticipationSection = document.getElementById('add-participation-section');
     const eventTilesContainer = document.getElementById('event-tiles-container');
 
@@ -116,6 +116,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const eventTile = document.createElement('div');
         eventTile.classList.add('event-tile'); 
 
+        // Build food charges display dynamically
+        let foodChargesHtml = '';
+        if (eventInfo.veg_food_charges && eventInfo.veg_food_charges > 0) {
+            foodChargesHtml += `<p><strong>Veg Food Charges:</strong> INR ${(eventInfo.veg_food_charges || 0).toFixed(2)} (${eventInfo.veg_food_charges_type || 'N/A'})</p>`;
+        }
+        if (eventInfo.non_veg_food_charges && eventInfo.non_veg_food_charges > 0) {
+            foodChargesHtml += `<p><strong>Non-Veg Food Charges:</strong> INR ${(eventInfo.non_veg_food_charges || 0).toFixed(2)} (${eventInfo.non_veg_food_charges_type || 'N/A'})</p>`;
+        }
+        if (foodChargesHtml === '') {
+            foodChargesHtml = '<p><strong>Food Charges:</strong> Not applicable</p>';
+        }
+
         eventTile.innerHTML = `
             <div class="event-header">
                 <h3>${eventInfo.name || 'N/A'}</h3>
@@ -128,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="event-footer">
                 <p><strong>Cover Charges:</strong> INR ${(eventInfo.cover_charges || 0).toFixed(2)} (${eventInfo.cover_charges_type || 'N/A'})</p>
-                <p><strong>Food Charges:</strong> INR ${(eventInfo.food_charges || 0).toFixed(2)} (${eventInfo.food_type || 'N/A'} - ${eventInfo.food_charges_type || 'N/A'})</p>
+                ${foodChargesHtml}
                 <div class="event-actions">
                     <button class="start-edit-participation-btn" data-event-id="${eventInfo.id}">Start/Edit Participation</button>
                     <button class="contribute-btn" data-event-id="${eventInfo.id}">Contribute</button>
@@ -397,10 +409,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             currentCalculatedPrice = data.calculated_price;
+
+            // Dynamically build food charges display for the calculation result
+            let foodCalculationResultHtml = '';
+            if (data.veg_food_charges > 0) {
+                foodCalculationResultHtml += `<p>Veg Food Charges: INR ${data.veg_food_charges.toFixed(2)} (${data.veg_food_charges_type})</p>`;
+            }
+            if (data.non_veg_food_charges > 0) {
+                foodCalculationResultHtml += `<p>Non-Veg Food Charges: INR ${data.non_veg_food_charges.toFixed(2)} (${data.non_veg_food_charges_type})</p>`;
+            }
+            if (foodCalculationResultHtml === '') {
+                foodCalculationResultHtml = '<p>Food Charges: Not applicable</p>';
+            }
+
             priceCalculationResult.innerHTML = `
                 <p><strong>Calculated Total Price:</strong> INR ${currentCalculatedPrice.toFixed(2)}</p>
                 <p>Cover Charges: INR ${data.cover_charges.toFixed(2)} (${data.cover_charges_type})</p>
-                <p>Food Charges: INR ${data.food_charges.toFixed(2)} (${data.food_type} - ${data.food_charges_type})</p>
+                ${foodCalculationResultHtml}
                 ${data.warning ? `<p class="error-message">Warning: ${data.warning}</p>` : ''}
             `;
             // Do not show payment section here, only display calculated price
@@ -561,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ersLogoutBtn.addEventListener('click', () => {
             console.log("Logout button clicked in ERS portal.");
             // Redirect to the User Portal's main page for the current user
-            // Assuming currentUserId is available and correct from the Flask injection
+            // Assuming currentUserId is available and correct from the Flask injection ..redirecting to main page
             const userPortalRedirectUrl = `${USER_PORTAL_ROOT_URL_JS}/portal/${currentUserId}`;
             console.log("Redirecting to:", userPortalRedirectUrl);
             window.location.href = userPortalRedirectUrl;

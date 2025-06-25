@@ -4,261 +4,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide-icons"></script>
-    <!-- Link to your external CSS file in the static folder -->
-    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans antialiased flex flex-col min-h-screen">
+    <script>
+        const AUTH_SERVICE_EXTERNAL_URL_JS = "{{ AUTH_SERVICE_EXTERNAL_URL | safe }}";
+        const USER_PORTAL_EXTERNAL_URL_JS = "{{ USER_PORTAL_EXTERNAL_URL | safe }}";
+    </script>
 
-    <!-- Message Box Container -->
     <div id="messageBox" class="message-box">
         <span id="messageIcon"></span>
         <span id="messageText"></span>
     </div>
 
-    <div class="flex h-screen bg-gray-200">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-800 text-gray-100 flex flex-col p-4 space-y-2 fixed inset-y-0 left-0 z-30">
-            <div class="text-2xl font-semibold text-white mb-6 pb-2 border-b border-gray-700 flex items-center">
-                <i data-lucide="shield-check" class="mr-2 text-blue-400"></i> Admin Portal
-            </div>
-            <nav class="flex-grow">
-                <a href="#dashboard" id="navDashboard" class="sidebar-link active flex items-center py-2.5 px-4 rounded-lg transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 text-gray-400"></i> Dashboard
-                </a>
-                <a href="#create-event" id="navCreateEvent" class="sidebar-link flex items-center py-2.5 px-4 rounded-lg transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <i data-lucide="plus-circle" class="w-5 h-5 mr-3 text-gray-400"></i> Create Event
-                </a>
-                <a href="#manage-events" id="navManageEvents" class="sidebar-link flex items-center py-2.5 px-4 rounded-lg transition duration-200 hover:bg-gray-700 hover:text-white">
-                     <i data-lucide="calendar-days" class="w-5 h-5 mr-3 text-gray-400"></i> Manage Events
-                </a>
-                <a href="#users" id="navUsers" class="sidebar-link flex items-center py-2.5 px-4 rounded-lg transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <i data-lucide="users" class="w-5 h-5 mr-3 text-gray-400"></i> Users
-                </a>
+    <header class="bg-white shadow-sm p-4 flex items-center justify-between z-20 sticky top-0 w-full">
+        <h1 id="pageTitle" class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+        <button id="menu-button" class="p-2 rounded-md hover:bg-gray-200 md:hidden"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        <span class="text-gray-600 hidden md:block">Welcome, Admin!</span>
+    </header>
+
+    <div class="relative flex-1 flex flex-row"> 
+        <aside class="w-64 bg-gray-800 text-white p-6 flex flex-col justify-between fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 md:shadow-none transition-transform duration-300">
+            <nav>
+                <h2 class="text-2xl font-bold mb-6 text-blue-300">Admin Panel</h2>
+                <ul>
+                    <li class="mb-3">
+                        <a href="#dashboard" id="navDashboard" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors duration-200 active">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="#create-event" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            <i data-lucide="calendar-plus" class="w-5 h-5 mr-3"></i>
+                            Create Event
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="#manage-events" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i>
+                            Manage Events
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="#users" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                            Users
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="#registrants" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                            <i data-lucide="user-check" class="w-5 h-5 mr-3"></i>
+                            Event Registrants
+                        </a>
+                    </li>
+                </ul>
             </nav>
-            <div class="mt-auto">
-                 <a href="#" id="logoutButton" class="sidebar-link flex items-center py-2.5 px-4 rounded-lg transition duration-200 hover:bg-red-600 hover:text-white group">
-                    <i data-lucide="log-out" class="w-5 h-5 mr-3 text-gray-400 group-hover:text-white"></i> Logout
+            <div class="mt-8">
+                <a href="#" id="logoutButton" class="flex items-center p-3 rounded-lg hover:bg-red-700 transition-colors duration-200 text-red-300">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
+                    Logout
                 </a>
             </div>
         </aside>
 
-        <!-- Main content -->
-        <main class="flex-1 flex flex-col overflow-hidden ml-64"> <!-- Added ml-64 for fixed sidebar -->
-            <!-- Top bar -->
-            <header class="bg-white shadow-md p-4">
-                <div class="flex justify-between items-center">
-                    <h1 id="pageTitle" class="text-2xl font-semibold text-gray-700">Dashboard</h1>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-gray-600 hidden sm:block">Welcome, Admin User!</span>
-                        <button id="notificationsButton" class="relative text-gray-500 hover:text-gray-700 focus:outline-none">
-                            <i data-lucide="bell" class="w-6 h-6"></i>
-                            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                        </button>
-                        <img src="https://placehold.co/40x40/E2E8F0/4A5568?text=AU" alt="Admin Avatar" class="w-10 h-10 rounded-full border-2 border-blue-500 cursor-pointer" onerror="this.onerror=null; this.src='https://placehold.co/40x40/E2E8F0/4A5568?text=AU';">
+        <div class="flex-1 p-6 md:p-10 overflow-y-auto"> 
+            <section id="dashboardView" class="page-section active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Events</p>
+                            <p id="totalEventsCount" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i data-lucide="calendar" class="w-10 h-10 text-blue-500"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Users</p>
+                            <p id="totalUsersCount" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i data-lucide="users-round" class="w-10 h-10 text-green-500"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Upcoming Events</p>
+                            <p id="upcomingEventsCount" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i data-lucide="calendar-days" class="w-10 h-10 text-purple-500"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Participants</p>
+                            <p id="totalParticipantsCount" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i data-lucide="user-check" class="w-10 h-10 text-orange-500"></i>
                     </div>
                 </div>
-            </header>
 
-            <!-- Page Content Area -->
-            <div class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-
-                <!-- Dashboard / Calendar View (Default View) -->
-                <section id="dashboardView" class="page-section space-y-6">
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Upcoming Events Calendar</h2>
-                        <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-                                <button id="calendarPrevMonth" class="btn btn-secondary w-full sm:w-auto"><i data-lucide="chevron-left" class="mr-1 -ml-1"></i> Prev</button>
-                                <h3 id="calendarMonthYear" class="text-lg font-medium text-gray-700 order-first sm:order-none">Month Year</h3>
-                                <button id="calendarNextMonth" class="btn btn-secondary w-full sm:w-auto">Next <i data-lucide="chevron-right" class="ml-1 -mr-1"></i></button>
-                            </div>
-                            <div id="calendarGrid" class="calendar">
-                                <!-- Calendar Headers -->
-                                <div class="calendar-header">Sun</div><div class="calendar-header">Mon</div><div class="calendar-header">Tue</div><div class="calendar-header">Wed</div><div class="calendar-header">Thu</div><div class="calendar-header">Fri</div><div class="calendar-header">Sat</div>
-                                <!-- Calendar days will be populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Create Event View -->
-                <section id="createEventView" class="page-section hidden space-y-6">
-                    <h2 class="text-xl md:text-2xl font-semibold text-gray-800">Create New Event</h2>
-                    <form id="createEventForm" class="bg-white p-6 md:p-8 rounded-lg shadow-lg space-y-6">
-                        <div>
-                            <label for="eventName" class="block text-sm font-medium text-gray-700">Event Name</label>
-                            <input type="text" name="eventName" id="eventName" placeholder="e.g., Annual Tech Conference" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="eventDate" class="block text-sm font-medium text-gray-700">Date</label>
-                                <input type="date" name="eventDate" id="eventDate" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label for="eventTime" class="block text-sm font-medium text-gray-700">Time</label>
-                                <input type="time" name="eventTime" id="eventTime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            </div>
-                        </div>
-                         <div>
-                            <label for="eventRegistrationCloseDate" class="block text-sm font-medium text-gray-700">Registration Close Date (Optional)</label>
-                            <input type="date" name="eventRegistrationCloseDate" id="eventRegistrationCloseDate" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        </div>
-                        <div>
-                            <label for="eventLocation" class="block text-sm font-medium text-gray-700">Location (Venue)</label>
-                            <input type="text" name="eventLocation" id="eventLocation" placeholder="e.g., Grand Convention Hall, Online" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        </div>
-                        <div>
-                            <label for="eventDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea name="eventDescription" id="eventDescription" rows="4" placeholder="Detailed description of the event..." required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="eventCategory" class="block text-sm font-medium text-gray-700">Category</label>
-                                <select name="eventCategory" id="eventCategory" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                    <option value="">Select Category</option>
-                                    <option value="conference">Conference</option>
-                                    <option value="workshop">Workshop</option>
-                                    <option value="webinar">Webinar</option>
-                                    <option value="meetup">Meetup</option>
-                                    <option value="social">Social Event</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                             <div>
-                                <label for="eventTags" class="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
-                                <input type="text" name="eventTags" id="eventTags" placeholder="e.g., tech, AI, networking" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="eventCapacity" class="block text-sm font-medium text-gray-700">Capacity (0 for unlimited)</label>
-                                <input type="number" name="eventCapacity" id="eventCapacity" placeholder="e.g., 500" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label for="eventPrice" class="block text-sm font-medium text-gray-700">Cover Charges ($) (0 for free)</label>
-                                <input type="number" step="0.01" name="eventPrice" id="eventPrice" placeholder="e.g., 25.00" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            </div>
-                        </div>
-                         <div>
-                            <label for="eventImage" class="block text-sm font-medium text-gray-700">Event Image/Banner URL (Optional)</label>
-                            <input type="url" name="eventImage" id="eventImage" placeholder="https://example.com/image.jpg" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        </div>
-                        <div class="pt-2 flex justify-end space-x-3">
-                            <button type="button" id="cancelCreateEvent" class="btn btn-secondary">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i data-lucide="save" class="mr-2 -ml-1"></i> Create Event
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- Manage Events View -->
-                <section id="manageEventsView" class="page-section hidden space-y-6">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-xl md:text-2xl font-semibold text-gray-800">Manage Events</h2>
-                        <button id="addNewEventButton" class="btn btn-primary">
-                            <i data-lucide="plus" class="mr-2 -ml-1"></i> Add New Event
+                <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <button id="calendarPrevMonth" class="p-2 rounded-full hover:bg-gray-200 transition-colors duration-200">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <h3 id="calendarMonthYear" class="text-xl font-semibold text-gray-800"></h3>
+                        <button id="calendarNextMonth" class="p-2 rounded-full hover:bg-gray-200 transition-colors duration-200">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
                         </button>
                     </div>
-                    <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg table-responsive">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="manageEventsTableBody" class="bg-white divide-y divide-gray-200">
-                                <!-- Event rows will be populated by JS -->
-                                <tr><td colspan="5" class="text-center py-4">Loading events...</td></tr>
-                            </tbody>
-                        </table>
+                    <div id="calendarGrid" class="calendar">
+                        </div>
+                </div>
+            </section>
+
+            <section id="create-eventView" class="page-section hidden">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Create New Event</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+                    <form id="createEventForm" class="space-y-4">
+                        <div>
+                            <label for="eventName" class="block text-sm font-medium text-gray-700">Event Name</label>
+                            <input type="text" id="eventName" name="eventName" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="eventDate" class="block text-sm font-medium text-gray-700">Date</label>
+                            <input type="date" id="eventDate" name="eventDate" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="eventTime" class="block text-sm font-medium text-gray-700">Time</label>
+                            <input type="time" id="eventTime" name="eventTime" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="eventRegistrationCloseDate" class="block text-sm font-medium text-gray-700">Registration Close Date (Optional)</label>
+                            <input type="date" id="eventRegistrationCloseDate" name="eventRegistrationCloseDate"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="eventLocation" class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" id="eventLocation" name="eventLocation" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="eventPrice" class="block text-sm font-medium text-gray-700">Coverage Cost (INR)</label>
+                                <input type="number" id="eventPrice" name="eventPrice" min="0" step="0.01" value="0.00"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="vegFoodCharges" class="block text-sm font-medium text-gray-700">Veg Food Charges (INR)</label>
+                                <input type="number" id="vegFoodCharges" name="vegFoodCharges" min="0" step="0.01" value="0.00"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="nonVegFoodCharges" class="block text-sm font-medium text-gray-700">Non-Veg Food Charges (INR)</label>
+                                <input type="number" id="nonVegFoodCharges" name="nonVegFoodCharges" min="0" step="0.01" value="0.00"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="eventImage" class="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+                                <input type="url" id="eventImage" name="eventImage"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="eventDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea id="eventDescription" name="eventDescription" rows="4" required
+                                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                            </div>
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" id="cancelCreateEvent"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Create Event
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </section>
 
-                <!-- Users View -->
-                <section id="usersView" class="page-section hidden space-y-6">
-                    <h2 class="text-xl md:text-2xl font-semibold text-gray-800">User Management</h2>
-                    <div class="bg-white rounded-lg shadow-lg">
-                        <!-- Tabs -->
-                        <div class="border-b border-gray-200">
-                            <nav class="-mb-px flex space-x-4 px-4 md:px-6" aria-label="Tabs">
-                                <button class="tab-button active" data-tab="overallUsersTab">Overall Users</button>
-                                <button class="tab-button" data-tab="eventRegistrantsTab">Event Registrants</button>
-                            </nav>
+                <section id="manage-eventsView" class="page-section hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Manage Existing Events</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-end mb-4">
+                            <button id="addNewEventButton"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                                Add New Event
+                            </button>
                         </div>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manageEventsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <tr><td colspan="5" class="text-center py-4 text-gray-500">Loading events...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
 
-                        <!-- Tab Content -->
-                        <div class="p-4 md:p-6">
-                            <!-- Overall Users Tab Content -->
-                            <div id="overallUsersTab" class="tab-content active">
-                                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-                                    <input id="userSearchInput" type="text" placeholder="Search users by name, email, phone..." class="mt-1 block w-full sm:max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                    <!-- Add User button might be for a modal or direct to Auth service management -->
-                                    <!-- <button class="btn btn-primary w-full sm:w-auto"><i data-lucide="user-plus" class="mr-2 -ml-1"></i> Add User</button> -->
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                                <!-- <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>-->
-                                            </tr>
-                                        </thead>
-                                        <tbody id="overallUsersTableBody" class="bg-white divide-y divide-gray-200">
-                                           <tr><td colspan="4" class="text-center py-4">Loading users...</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                <section id="usersView" class="page-section hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Manage Users</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="mb-4">
+                            <input type="text" id="userSearchInput" placeholder="Search users by username, email, or phone..."
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overallUsersTableBody" class="bg-white divide-y divide-gray-200">
+                                    <tr><td colspan="4" class="text-center py-4 text-gray-500">Loading users...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
 
-                            <!-- Event Registrants Tab Content -->
-                            <div id="eventRegistrantsTab" class="tab-content">
-                                <div class="mb-4">
-                                    <label for="selectEventForRegistrants" class="block text-sm font-medium text-gray-700 mb-1">Select Event:</label>
-                                    <select id="selectEventForRegistrants" name="selectEventForRegistrants" class="mt-1 block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                        <option value="">-- Choose an Event --</option>
-                                        <!-- Events populated by JS -->
+                <section id="registrantsView" class="page-section hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Event Registrants & Participation</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="selectEventForRegistrants" class="block text-sm font-medium text-gray-700 mb-1">Select Event</label>
+                                <select id="selectEventForRegistrants"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="">-- Choose an Event --</option>
                                     </select>
-                                </div>
-                                <div class="table-responsive">
-                                    <p class="text-gray-600 text-sm">Note: Event registrants data would typically come from a Participation Service, which is planned for later. This section is a placeholder.</p>
-                                    <table class="min-w-full divide-y divide-gray-200 mt-2">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Type</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventRegistrantsTableBody" class="bg-white divide-y divide-gray-200">
-                                            <tr><td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Select an event to view registrants. (Placeholder)</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
+                            <div>
+                                <label for="participationSearchInput" class="block text-sm font-medium text-gray-700 mb-1">Search Participants</label>
+                                <input type="text" id="participationSearchInput" placeholder="Search by name or email..."
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant Name</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventRegistrantsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <tr><td colspan="5" class="text-center py-4 text-gray-500">Select an event or search to view registrants.</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
 
-            </div> <!-- End Page Content Area -->
-        </main>
+            </main>
+        </div>
     </div>
-
-    <!-- Link to your external JavaScript file in the static folder -->
-    <script src="/static/script.js" defer></script>
+    
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </body>
 </html>

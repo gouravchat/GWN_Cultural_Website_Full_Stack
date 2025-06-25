@@ -94,9 +94,11 @@ def get_event_data_internal(event_id):
             "details": event_data.get('details'),
             "cover_charges": subscription_data.get('coverCharges', 0.0),
             "cover_charges_type": subscription_data.get('coverChargesType', 'per_head'),
-            "food_charges": food_data.get('foodCharges', 0.0),
-            "food_type": food_data.get('foodType', 'veg'),
-            "food_charges_type": food_data.get('foodChargesType', 'per_head')
+            # Updated: Retrieve new food charge fields
+            "veg_food_charges": food_data.get('vegFoodCharges', 0.0),
+            "veg_food_charges_type": food_data.get('vegFoodChargesType', 'per_head'),
+            "non_veg_food_charges": food_data.get('nonVegFoodCharges', 0.0),
+            "non_veg_food_charges_type": food_data.get('nonVegFoodChargesType', 'per_head')
         }
     except requests.exceptions.RequestException as e:
         app_logger.error(f"Error fetching event data from Event Service for event {event_id}: {e}")
@@ -109,9 +111,11 @@ def get_event_data_internal(event_id):
             "details": "This is a dummy event.",
             "cover_charges": 50.0,
             "cover_charges_type": "per_head",
-            "food_charges": 15.0,
-            "food_type": "both",
-            "food_charges_type": "per_head"
+            # Dummy values for new food fields
+            "veg_food_charges": 15.0,
+            "veg_food_charges_type": "per_head",
+            "non_veg_food_charges": 25.0,
+            "non_veg_food_charges_type": "per_head"
         }
 
 # --- Frontend Serving Endpoint ---
@@ -185,9 +189,12 @@ def calculate_price():
 
     cover_charges = event_data.get('cover_charges', 0.0)
     cover_charges_type = event_data.get('cover_charges_type', 'per_head')
-    food_charges = event_data.get('food_charges', 0.0)
-    food_type = event_data.get('food_type', 'veg')
-    food_charges_type = event_data.get('food_charges_type', 'per_head')
+    
+    # Updated: Get specific veg and non-veg food charges and types
+    veg_food_charges = event_data.get('veg_food_charges', 0.0)
+    veg_food_charges_type = event_data.get('veg_food_charges_type', 'per_head')
+    non_veg_food_charges = event_data.get('non_veg_food_charges', 0.0)
+    non_veg_food_charges_type = event_data.get('non_veg_food_charges_type', 'per_head')
 
     total_cover_cost = 0.0
     if cover_charges_type == 'per_head':
@@ -196,15 +203,17 @@ def calculate_price():
         total_cover_cost = cover_charges
 
     total_food_cost = 0.0
-    if food_charges_type == 'per_head':
-        if food_type == 'veg':
-            total_food_cost = food_charges * veg_heads
-        elif food_type == 'non_veg':
-            total_food_cost = food_charges * non_veg_heads
-        elif food_type == 'both':
-            total_food_cost = food_charges * (veg_heads + non_veg_heads)
-    elif food_charges_type == 'per_family':
-        total_food_cost = food_charges
+    # Calculate veg food cost
+    if veg_food_charges_type == 'per_head':
+        total_food_cost += veg_food_charges * veg_heads
+    elif veg_food_charges_type == 'per_family':
+        total_food_cost += veg_food_charges
+    
+    # Calculate non-veg food cost
+    if non_veg_food_charges_type == 'per_head':
+        total_food_cost += non_veg_food_charges * non_veg_heads
+    elif non_veg_food_charges_type == 'per_family':
+        total_food_cost += non_veg_food_charges
 
     total_payable = total_cover_cost + total_food_cost + additional_contribution 
 
@@ -219,9 +228,11 @@ def calculate_price():
         "calculated_price": total_payable,
         "cover_charges": cover_charges,
         "cover_charges_type": cover_charges_type,
-        "food_charges": food_charges,
-        "food_type": food_type,
-        "food_charges_type": food_charges_type
+        # Updated: Include specific veg and non-veg food charges and types in response
+        "veg_food_charges": veg_food_charges,
+        "veg_food_charges_type": veg_food_charges_type,
+        "non_veg_food_charges": non_veg_food_charges,
+        "non_veg_food_charges_type": non_veg_food_charges_type
     }
     if "Dummy Event" in event_data.get('name', ''):
         response_payload["warning"] = "Could not fetch actual event prices. Using defaults."
@@ -252,12 +263,14 @@ def start_participation():
     event_data = get_event_data_internal(event_id)
 
     # Recalculate payable amount based on current input and event data
-    # This logic is duplicated from calculate_price, consider a shared helper function
     cover_charges = event_data.get('cover_charges', 0.0)
     cover_charges_type = event_data.get('cover_charges_type', 'per_head')
-    food_charges = event_data.get('food_charges', 0.0)
-    food_type = event_data.get('food_type', 'veg')
-    food_charges_type = event_data.get('food_charges_type', 'per_head')
+    
+    # Updated: Get specific veg and non-veg food charges and types
+    veg_food_charges = event_data.get('veg_food_charges', 0.0)
+    veg_food_charges_type = event_data.get('veg_food_charges_type', 'per_head')
+    non_veg_food_charges = event_data.get('non_veg_food_charges', 0.0)
+    non_veg_food_charges_type = event_data.get('non_veg_food_charges_type', 'per_head')
 
     total_cover_cost = 0.0
     if cover_charges_type == 'per_head':
@@ -266,15 +279,17 @@ def start_participation():
         total_cover_cost = cover_charges
 
     total_food_cost = 0.0
-    if food_charges_type == 'per_head':
-        if food_type == 'veg':
-            total_food_cost = food_charges * veg_heads
-        elif food_type == 'non_veg':
-            total_food_cost = food_charges * non_veg_heads
-        elif food_type == 'both':
-            total_food_cost = food_charges * (veg_heads + non_veg_heads)
-    elif food_charges_type == 'per_family':
-        total_food_cost = food_charges
+    # Calculate veg food cost
+    if veg_food_charges_type == 'per_head':
+        total_food_cost += veg_food_charges * veg_heads
+    elif veg_food_charges_type == 'per_family':
+        total_food_cost += veg_food_charges
+    
+    # Calculate non-veg food cost
+    if non_veg_food_charges_type == 'per_head':
+        total_food_cost += non_veg_food_charges * non_veg_heads
+    elif non_veg_food_charges_type == 'per_family':
+        total_food_cost += non_veg_food_charges
     
     total_payable = total_cover_cost + total_food_cost + additional_contribution
 
@@ -357,9 +372,12 @@ def edit_participation():
     # Calculate new total payable based on updated heads and current event details
     cover_charges = event_data.get('cover_charges', 0.0)
     cover_charges_type = event_data.get('cover_charges_type', 'per_head')
-    food_charges = event_data.get('food_charges', 0.0)
-    food_type = event_data.get('food_type', 'veg')
-    food_charges_type = event_data.get('food_charges_type', 'per_head')
+    
+    # Updated: Get specific veg and non-veg food charges and types
+    veg_food_charges = event_data.get('veg_food_charges', 0.0)
+    veg_food_charges_type = event_data.get('veg_food_charges_type', 'per_head')
+    non_veg_food_charges = event_data.get('non_veg_food_charges', 0.0)
+    non_veg_food_charges_type = event_data.get('non_veg_food_charges_type', 'per_head')
 
     total_cover_cost = 0.0
     if cover_charges_type == 'per_head':
@@ -368,15 +386,17 @@ def edit_participation():
         total_cover_cost = cover_charges
 
     total_food_cost = 0.0
-    if food_charges_type == 'per_head':
-        if food_type == 'veg':
-            total_food_cost = food_charges * veg_heads
-        elif food_type == 'non_veg':
-            total_food_cost = food_charges * non_veg_heads
-        elif food_type == 'both':
-            total_food_cost = food_charges * (veg_heads + non_veg_heads)
-    elif food_charges_type == 'per_family':
-        total_food_cost = food_charges
+    # Calculate veg food cost
+    if veg_food_charges_type == 'per_head':
+        total_food_cost += veg_food_charges * veg_heads
+    elif veg_food_charges_type == 'per_family':
+        total_food_cost += veg_food_charges
+    
+    # Calculate non-veg food cost
+    if non_veg_food_charges_type == 'per_head':
+        total_food_cost += non_veg_food_charges * non_veg_heads
+    elif non_veg_food_charges_type == 'per_family':
+        total_food_cost += non_veg_food_charges
     
     new_total_payable = total_cover_cost + total_food_cost + additional_contribution
 

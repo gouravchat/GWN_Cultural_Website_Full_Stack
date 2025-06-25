@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Management</title>
-    <!-- Use Flask's url_for to generate the correct path for static files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Inject dynamic API base URL from Flask backend into JavaScript -->
     <script>
         // This global constant will be available to script.js
         // It will be something like '/events' or '' if directly accessed.
@@ -39,7 +37,7 @@
                 <label for="eventPhoto">Event Photo:</label>
                 <input type="file" id="eventPhoto" name="photo" accept="image/*">
 
-                <label for="coverCharges">Cover Charges:</label>
+                <label for="coverCharges">Cover Charges (INR):</label>
                 <input type="number" id="coverCharges" name="coverCharges" step="0.01" value="0.00">
 
                 <label for="coverChargesType">Cover Charges Type:</label>
@@ -48,21 +46,24 @@
                     <option value="per_family">Per Family</option>
                 </select>
 
-                <label for="foodCharges">Food Charges:</label>
-                <input type="number" id="foodCharges" name="foodCharges" step="0.01" value="0.00">
+                <label for="vegFoodCharges">Veg Food Charges (INR):</label>
+                <input type="number" id="vegFoodCharges" name="vegFoodCharges" step="0.01" value="0.00">
 
-                <label for="foodType">Food Type:</label>
-                <select id="foodType" name="foodType">
-                    <option value="veg">Vegetarian</option>
-                    <option value="non_veg">Non-Vegetarian</option>
-                    <option value="both">Both</option>
-                </select>
-
-                <label for="foodChargesType">Food Charges Basis:</label>
-                <select id="foodChargesType" name="foodChargesType">
+                <label for="vegFoodChargesType">Veg Food Charges Basis:</label>
+                <select id="vegFoodChargesType" name="vegFoodChargesType">
                     <option value="per_head">Per Head</option>
                     <option value="per_family">Per Family</option>
                 </select>
+
+                <label for="nonVegFoodCharges">Non-Veg Food Charges (INR):</label>
+                <input type="number" id="nonVegFoodCharges" name="nonVegFoodCharges" step="0.01" value="0.00">
+
+                <label for="nonVegFoodChargesType">Non-Veg Food Charges Basis:</label>
+                <select id="nonVegFoodChargesType" name="nonVegFoodChargesType">
+                    <option value="per_head">Per Head</option>
+                    <option value="per_family">Per Family</option>
+                </select>
+
                 <button type="submit">Create Event</button>
             </form>
             <p id="formMessage" class="message"></p>
@@ -77,7 +78,6 @@
         </section>
     </div>
 
-    <!-- Use Flask's url_for to generate the correct path for the JavaScript file -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

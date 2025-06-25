@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose port 5000 for the frontend service
-EXPOSE 5003
+EXPOSE 5006
 
 # Command to run the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5003", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5006", "app:app"]

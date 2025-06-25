@@ -35,11 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Prepare food charges display string
                     let foodChargesDisplay = '';
-                    if (event.food && event.food.foodCharges > 0) {
-                        foodChargesDisplay = `
-                            <p><strong>Food Charges:</strong> $${event.food.foodCharges.toFixed(2)} (${event.food.foodChargesType.replace('_', ' ')})</p>
-                            <p><strong>Food Type:</strong> ${event.food.foodType.charAt(0).toUpperCase() + event.food.foodType.slice(1).replace('_', ' ')}</p>
-                        `;
+                    if (event.food) {
+                        // Display Veg Food Charges if greater than 0
+                        if (event.food.vegFoodCharges > 0) {
+                            foodChargesDisplay += `
+                                <p><strong>Veg Food Charges:</strong> INR ${event.food.vegFoodCharges.toFixed(2)} (${event.food.vegFoodChargesType.replace('_', ' ')})</p>
+                            `;
+                        }
+                        // Display Non-Veg Food Charges if greater than 0
+                        if (event.food.nonVegFoodCharges > 0) {
+                            foodChargesDisplay += `
+                                <p><strong>Non-Veg Food Charges:</strong> INR ${event.food.nonVegFoodCharges.toFixed(2)} (${event.food.nonVegFoodChargesType.replace('_', ' ')})</p>
+                            `;
+                        }
                     }
 
                     eventCard.innerHTML = `
@@ -49,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p><strong>Close Date:</strong> ${new Date(event.close_date).toLocaleString()}</p>
                         <p><strong>Venue:</strong> ${event.venue}</p>
                         <p><strong>Details:</strong> ${event.details}</p>
-                        <p><strong>Cover Charges:</strong> $${event.subscription.coverCharges.toFixed(2)} (${event.subscription.coverChargesType.replace('_', ' ')})</p>
+                        <p><strong>Cover Charges:</strong> INR ${event.subscription.coverCharges.toFixed(2)} (${event.subscription.coverChargesType.replace('_', ' ')})</p>
                         ${foodChargesDisplay}
                     `;
                     eventsList.appendChild(eventCard);
@@ -77,11 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData(eventForm);
 
+        // Ensure numerical values are parsed correctly
         if (formData.has('coverCharges')) {
             formData.set('coverCharges', parseFloat(formData.get('coverCharges')));
         }
-        if (formData.has('foodCharges')) {
-            formData.set('foodCharges', parseFloat(formData.get('foodCharges')));
+        // Updated to handle vegFoodCharges
+        if (formData.has('vegFoodCharges')) {
+            formData.set('vegFoodCharges', parseFloat(formData.get('vegFoodCharges')));
+        }
+        // Added for nonVegFoodCharges
+        if (formData.has('nonVegFoodCharges')) {
+            formData.set('nonVegFoodCharges', parseFloat(formData.get('nonVegFoodCharges')));
         }
         
         const photoFile = formData.get('photo');

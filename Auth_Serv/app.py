@@ -3,6 +3,8 @@ import requests
 from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, session, url_for
 from bcrypt import hashpw, gensalt, checkpw
 from flask_cors import CORS
+import logging
+import time
 
 # Get the script name from environment variable, which Nginx will pass
 # If not present, default to empty string for local direct access
@@ -28,6 +30,16 @@ ADMIN_PORTAL_URL_AFTER_LOGIN = os.environ.get('ADMIN_PORTAL_URL', 'https://local
 # --- Crucial: Set APPLICATION_ROOT and SCRIPT_NAME for Nginx proxying ---
 # APPLICATION_ROOT tells Flask about the external path it's served under.
 app.config['APPLICATION_ROOT'] = AUTH_SERVICE_SCRIPT_NAME
+
+# app logger configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+app_logger = logging.getLogger(__name__)
+
+#Admin password and user details for default admin creation
+DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin_nacs') # Default admin username
+DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'nestadmin@1234')   # Default admin password (CHANGE THIS IN PRODUCTION)
+DEFAULT_ADMIN_EMAIL = os.environ.get('DEFAULT_ADMIN_EMAIL', 'Nest.alpine.cultural.team@gmail.com')
+DEFAULT_ADMIN_PHONE = os.environ.get('DEFAULT_ADMIN_PHONE', '9933735742')
 
 # This hook ensures that Flask's url_for generates correct URLs and
 # request.path/request.url are correctly interpreted when behind a proxy.
@@ -244,8 +256,102 @@ def hash_password_endpoint():
     hashed = hashpw(password.encode('utf-8'), gensalt())
     return jsonify({"hashed_password": hashed.decode('utf-8')}), 200
 
-if __name__ == '__main__':
-    # When running locally without Nginx, AUTH_SERVICE_SCRIPT_NAME will be empty
-    # so the app will serve directly from root.
-    app.run(host='0.0.0.0', port=5002, debug=True)
 
+# --- NEW: Function to create default admin user on startup ---
+# --- Admin User Creation Logic ---
+# This function is now a standalone helper.
+# It includes a retry mechanism for robustness during startup.
+def provision_admin_user_on_startup(app_instance):
+    """
+    Attempts to create a default admin user in the DB API if one doesn't exist.
+    This function includes retries for DB_API connectivity, as it's meant to run
+    at service startup where DB_API might not be immediately available.
+    """
+    app_logger.info("Auth Service startup: Starting admin provisioning logic with retries.")
+    
+    admin_username = DEFAULT_ADMIN_USERNAME
+    admin_password = DEFAULT_ADMIN_PASSWORD
+    admin_email = DEFAULT_ADMIN_EMAIL
+    admin_phone = DEFAULT_ADMIN_PHONE
+
+    if not all([admin_username, admin_password, admin_email, admin_phone]):
+        app_logger.error("Missing environment variables for DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, etc. Cannot provision default admin.")
+        return
+
+    max_retries = 15 # Increased retries
+    retry_delay_seconds = 5 # Increased delay
+
+    for attempt in range(max_retries):
+        try:
+            app_logger.info(f"Attempt {attempt + 1}/{max_retries}: Checking for admin user '{admin_username}' in DB API...")
+            check_response = requests.get(f"{DB_API_URL}/users", params={'query': admin_username}, timeout=5)
+            
+            user_found_in_db = False
+            if check_response.status_code == 200:
+                user_data_response = check_response.json()
+                if isinstance(user_data_response, list) and any(u.get('username') == admin_username for u in user_data_response):
+                    user_found_in_db = True
+                elif isinstance(user_data_response, dict) and user_data_response.get('username') == admin_username:
+                    user_found_in_db = True
+                else:
+                    app_logger.debug(f"DB API returned data for query '{admin_username}' but no matching user found in content (status 200).")
+            elif check_response.status_code == 404:
+                app_logger.info(f"Default admin user '{admin_username}' not found (DB API returned 404). Proceeding to create.")
+            else:
+                app_logger.error(f"Failed to check for admin user existence (Status: {check_response.status_code}): {check_response.text}")
+                # If cannot check, retry (as it might be a temporary DB API issue)
+                raise requests.exceptions.RequestException(f"Failed initial check (status {check_response.status_code})")
+
+            if user_found_in_db:
+                app_logger.info(f"Default admin user '{admin_username}' already exists in DB API. Skipping creation.")
+                return # Exit successfully
+
+            # 2. If admin user doesn't exist, create it
+            hashed_password = hashpw(admin_password.encode('utf-8'), gensalt()).decode('utf-8')
+            admin_user_data = {
+                "username": admin_username,
+                "email": admin_email,
+                "phone_number": admin_phone,
+                "hashed_password": hashed_password,
+                "role": "admin"
+            }
+
+            app_logger.info(f"Attempting to create default admin user '{admin_username}' in DB API.")
+            create_response = requests.post(f"{DB_API_URL}/users", json=admin_user_data, timeout=5)
+            create_response.raise_for_status()
+            
+            app_logger.info(f"Default admin user '{admin_username}' created successfully in DB API.")
+            return # Exit successfully after creation
+        
+        except requests.exceptions.ConnectionError:
+            app_logger.warning(f"Could not connect to DB API at '{DB_API_URL}' (attempt {attempt + 1}). Retrying in {retry_delay_seconds}s...")
+        except requests.exceptions.Timeout:
+            app_logger.warning(f"DB API connection timed out at '{DB_API_URL}' (attempt {attempt + 1}). Retrying in {retry_delay_seconds}s...")
+        except requests.exceptions.RequestException as e:
+            response_text = e.response.text if e.response else 'N/A'
+            status_code = e.response.status_code if e.response is not None else 500
+            app_logger.warning(f"Error during admin user creation (attempt {attempt + 1}): {e} (Status: {status_code}). Response: {response_text}. Retrying in {retry_delay_seconds}s...")
+            if status_code == 409: # Conflict means user exists, so it's not an error that needs retry
+                app_logger.info(f"Admin creation failed due to conflict (user might have been created by another process or concurrent startup). Skipping further retries for creation.")
+                return # Exit successfully if user already exists
+        except Exception as e:
+            app_logger.critical(f"An unexpected error occurred during default admin provisioning on startup (attempt {attempt + 1}): {e}", exc_info=True)
+            # For unhandled critical errors, re-raise if max retries hit, or log and retry.
+        
+        if attempt < max_retries - 1:
+            time.sleep(retry_delay_seconds)
+        else:
+            app_logger.critical(f"Max retries ({max_retries}) reached. Failed to provision default admin user '{admin_username}'. This service might not function correctly if admin is required.")
+
+
+if __name__ == '__main__':
+    # This block runs ONLY when the script is executed directly (e.g., `python app.py`).
+    # It does NOT run when Gunicorn (or other WSGI servers) imports the `app` object.
+    # We need to call the admin provisioning logic here.
+    # It must run within an app context if it needs to access app.config, etc.
+    # For this specific case, as it uses requests and logging, it doesn't strictly need
+    # app.app_context() if it's external calls. But it's good practice for Flask-related startup.
+    #with app.app_context(): # Provide app context for safety and consistency
+    provision_admin_user_on_startup(app)   
+    # Run the Flask development server
+    app.run(host='0.0.0.0', port=5002, debug=True)
