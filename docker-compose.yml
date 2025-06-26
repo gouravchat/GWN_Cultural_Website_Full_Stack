@@ -148,7 +148,7 @@ services:
   # admin portal service (takes  user db, event db, participation db)
   admin-portal-service: # NEW: Admin Portal Service
     build:
-      context: ./Admin_Portal_Service # Assuming your Admin Portal Flask app is in this directory
+      context: ./Admin_portal_Service # Assuming your Admin Portal Flask app is in this directory
     container_name: admin_portal_container
     restart: unless-stopped
     environment:
