@@ -137,7 +137,7 @@ services:
       - DB_API_URL=http://db_api:5004 # ERS talks to DB API
       - EVENT_SERVICE_URL=http://event-service:5000 # ERS talks to Event Service
       - PARTICIPATION_SERVICE_URL=http://participation-service:5005 # ERS talks to Participation Service
-      - USER_PORTAL_ROOT_URL=http://frontend:8080 # ERS can link back to the frontend
+      - USER_PORTAL_ROOT_URL=https://${HOST_IP_OR_DOMAIN}/user-portal # ERS can link back to the frontend
     depends_on:
       - db_api
       - event-service

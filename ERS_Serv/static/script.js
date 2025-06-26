@@ -32,12 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("API_CONFIG successfully loaded from Flask:", API_CONFIG);
         // Explicit check for ERS_CHECK_PARTICIPATION_API in Flask-injected scenario
         console.log("Flask-injected: ERS_CHECK_PARTICIPATION_API is set to:", API_CONFIG.ERS_CHECK_PARTICIPATION_API);
+
     }
 
     // NEW: User Portal Root URL - ensure it's available from Flask injection
-    const USER_PORTAL_ROOT_URL_JS = typeof window.USER_PORTAL_ROOT_URL_JS !== 'undefined' ? window.USER_PORTAL_ROOT_URL_JS : 'https://localhost/user-portal';
+    const USER_PORTAL_ROOT_URL_JS = typeof window.USER_PORTAL_ROOT_URL !== 'undefined' ? window.USER_PORTAL_ROOT_URL : 'https://localhost/user-portal';
     console.log("User Portal Root URL for Redirection:", USER_PORTAL_ROOT_URL_JS);
-
 
     const userIdInput = document.getElementById('userId');
     const eventIdInput = document.getElementById('eventId');
