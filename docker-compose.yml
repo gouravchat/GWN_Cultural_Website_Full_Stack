@@ -28,7 +28,10 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./certs:/etc/nginx/certs
+      # NEW: Volumes for Certbot challenge files and Let's Encrypt certificates
+      - certbot-web:/var/www/certbot # Volume for Certbot HTTP-01 challenges
+      - certbot-certs:/etc/letsencrypt # Volume for Certbot certificates
+      # Removed ./certs:/etc/nginx/certs as Certbot manages /etc/letsencrypt
     depends_on:
       - frontend
       - db_api
@@ -38,6 +41,27 @@ services:
       - participation-service
     networks:
       - app-network
+
+  # === NEW: Certbot Service ===
+  certbot:
+    image: certbot/certbot
+    container_name: certbot_container
+    # These volumes must match those in the Nginx service.
+    volumes:
+      - certbot-web:/var/www/certbot # Shared with Nginx for challenges
+      - certbot-certs:/etc/letsencrypt # Shared with Nginx for certificates
+    # Certbot needs Nginx to be running to verify domain ownership
+    depends_on:
+      - nginx 
+    # The command to obtain initial certificates.
+    # IMPORTANT: Replace YOUR_EMAIL@EXAMPLE.COM with your actual email.
+    #            Replace ${HOST_IP_OR_DOMAIN} with your actual domain(s) from .env file.
+    #            --staging is for testing. REMOVE IT for production certificates!
+    command: certbot certonly --webroot -w /var/www/certbot --email Nest.alpine.cultural.team@gmail.com --agree-tos --no-eff-email -d ${HOST_IP_OR_DOMAIN} --staging
+    # Note: For automatic renewal, this 'command' will be modified later (e.g., to run a cron job inside).
+    networks:
+      - app-network
+    # Do NOT expose ports for certbot, it talks to Nginx internally
 
   # --- Backend and Frontend Services (Internal Only) ---
 
@@ -51,6 +75,8 @@ services:
       # Use the HOST_IP_OR_DOMAIN variable for external URLs
       - AUTH_SERVICE_LOGIN_URL=https://${HOST_IP_OR_DOMAIN}/auth/
       - EVENT_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/events/
+      # Also pass the actual domain to frontend for image URLs etc. if needed
+      - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
     networks:
       - app-network
 
@@ -68,12 +94,17 @@ services:
     container_name: auth_api_container
     restart: unless-stopped
     environment:
-      - DB_API_URL=http://db_api:5004 # Internal Docker network URL - no change
+      - DB_API_URL=http://db_api:5004 # Internal Docker network URL
       - FLASK_SECRET_KEY=test12
       - FLASK_SCRIPT_NAME=/auth
       # Use the HOST_IP_OR_DOMAIN variable for external portal URLs
       - USER_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
       - ADMIN_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/admin-portal
+      # For Auth Service Startup Admin provisioning (ensure these are set in your .env or build process)
+      - DEFAULT_ADMIN_USERNAME=admin_nacs
+      - DEFAULT_ADMIN_PASSWORD=adminpass # CHANGE THIS FOR PRODUCTION
+      - DEFAULT_ADMIN_EMAIL=admin@example.com
+      - DEFAULT_ADMIN_PHONE=9998887770
     depends_on:
       - db_api
     networks:
@@ -87,6 +118,8 @@ services:
     environment:
       - FLASK_RUN_PORT=5000
       - FLASK_SCRIPT_NAME=/events
+      # Pass domain for static file URLs if constructed in Flask
+      - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
     volumes:
       - event_db_data:/app/data
     networks:
@@ -100,11 +133,12 @@ services:
     environment:
       - FLASK_RUN_PORT=5001
       - FLASK_SCRIPT_NAME=/user-portal
-      - DB_API_URL=http://db_api:5004 # Internal Docker network URL - no change
-      - EVENT_SERVICE_URL=http://event-service:5000 # Internal Docker network URL - no change
-      # Use the HOST_IP_OR_DOMAIN variable for external service URLs
+      - DB_API_URL=http://db_api:5004
+      - EVENT_SERVICE_URL=http://event-service:5000
       - AUTH_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/auth
       - ERS_LANDING_PAGE_URL=https://${HOST_IP_OR_DOMAIN}/ers
+      # Pass domain for proper URL generation
+      - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
     depends_on:
       - db_api
       - event-service
@@ -112,32 +146,32 @@ services:
     networks:
       - app-network
 
-  participation-service: # New Participation Service
+  participation-service:
       build:
-        context: ./participation_serv # Assuming your Flask app is in a folder named Participation_Serv
+        context: ./participation_serv
       container_name: participation_service_container
       restart: unless-stopped
       environment:
-        - FLASK_RUN_PORT=5005 # Port your Flask app runs on internally
-        - FLASK_SCRIPT_NAME=/participations # This matches the Nginx location block
+        - FLASK_RUN_PORT=5005
+        - FLASK_SCRIPT_NAME=/participations
       volumes:
-        - participation_db_data:/app/data # Persistent storage for your SQLite DB
+        - participation_db_data:/app/data
       networks:
         - app-network
 
   ers-service:
     build:
-      context: ./ERS_Serv # NEW: Point to the dedicated ERS service directory
+      context: ./ERS_Serv
     container_name: ers_service_container
     restart: unless-stopped
     environment:
-      - FLASK_RUN_PORT=5007 # ERS now runs on 5007
-      - FLASK_SCRIPT_NAME=/ers # NEW: Dedicated script name for ERS
-      # Internal Docker network URLs for ERS to communicate with other services
-      - DB_API_URL=http://db_api:5004 # ERS talks to DB API
-      - EVENT_SERVICE_URL=http://event-service:5000 # ERS talks to Event Service
-      - PARTICIPATION_SERVICE_URL=http://participation-service:5005 # ERS talks to Participation Service
-      - USER_PORTAL_ROOT_URL=https://${HOST_IP_OR_DOMAIN}/user-portal # ERS can link back to the frontend
+      - FLASK_RUN_PORT=5007
+      - FLASK_SCRIPT_NAME=/ers
+      - DB_API_URL=http://db_api:5004
+      - EVENT_SERVICE_URL=http://event-service:5000
+      - PARTICIPATION_SERVICE_URL=http://participation-service:5005
+      - USER_PORTAL_ROOT_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
+      - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
     depends_on:
       - db_api
       - event-service
@@ -145,23 +179,21 @@ services:
     networks:
       - app-network
 
-  # admin portal service (takes  user db, event db, participation db)
-  admin-portal-service: # NEW: Admin Portal Service
+  admin-portal-service:
     build:
-      context: ./Admin_portal_Service # Assuming your Admin Portal Flask app is in this directory
+      context: ./Admin_Portal_Service
     container_name: admin_portal_container
     restart: unless-stopped
     environment:
-      - FLASK_RUN_PORT=5006 # Internal port the Flask app runs on
-      - FLASK_SCRIPT_NAME=/admin-portal # This matches the Nginx location block
-      # Internal Docker network URLs for Admin Portal to communicate with other services
+      - FLASK_RUN_PORT=5006
+      - FLASK_SCRIPT_NAME=/admin-portal
       - EVENT_SERVICE_URL=http://event-service:5000
       - AUTH_SERVICE_URL=http://auth_api:5002
       - PARTICIPATION_SERVICE_URL=http://participation-service:5005
-      - DB_API_URL=http://db_api:5004 # Admin Portal talks to DB API
-      # External facing URLs passed for redirects (from Nginx/Host)
+      - DB_API_URL=http://db_api:5004
       - AUTH_SERVICE_EXTERNAL_URL=https://${HOST_IP_OR_DOMAIN}/auth
       - USER_PORTAL_EXTERNAL_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
+      - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
     depends_on:
       - event-service
       - auth_api
@@ -173,6 +205,9 @@ volumes:
   db_data:
   event_db_data:
   participation_db_data:
+  # NEW: Volumes for Certbot to store webroot files and certificates
+  certbot-web: # Used for HTTP-01 challenges
+  certbot-certs: # Used for storing obtained certificates
 
 networks:
   app-network:
