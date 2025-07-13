@@ -15,6 +15,7 @@ version: '3.8'
 # 7. Participation Service - Port 5005 internally
 # 8. ERS Service - Port 5007 internally
 # 9. Admin Portal Service - Port 5006 internally
+# 10. Payment Service - Port 5009 internally
 
 
 services:
@@ -30,7 +31,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       # NEW: Volumes for Certbot challenge files and Let's Encrypt certificates
       - certbot-web:/var/www/certbot # Volume for Certbot HTTP-01 challenges
-      - certbot-certs:/etc/letsencrypt # Volume for Certbot certificates
+      - ./certbot-certs:/etc/letsencrypt/ # Volume for Certbot certificates
       # Removed ./certs:/etc/nginx/certs as Certbot manages /etc/letsencrypt
     depends_on:
       - frontend
@@ -43,24 +44,24 @@ services:
       - app-network
 
   # === NEW: Certbot Service ===
-  certbot:
-    image: certbot/certbot
-    container_name: certbot_container
-    # These volumes must match those in the Nginx service.
-    volumes:
-      - certbot-web:/var/www/certbot # Shared with Nginx for challenges
-      - certbot-certs:/etc/letsencrypt # Shared with Nginx for certificates
-    # Certbot needs Nginx to be running to verify domain ownership
-    depends_on:
-      - nginx 
-    # The command to obtain initial certificates.
-    # IMPORTANT: Replace YOUR_EMAIL@EXAMPLE.COM with your actual email.
-    #            Replace ${HOST_IP_OR_DOMAIN} with your actual domain(s) from .env file.
-    #            --staging is for testing. REMOVE IT for production certificates!
-    command: certbot certonly --webroot -w /var/www/certbot --email Nest.alpine.cultural.team@gmail.com --agree-tos --no-eff-email -d ${HOST_IP_OR_DOMAIN} --staging
-    # Note: For automatic renewal, this 'command' will be modified later (e.g., to run a cron job inside).
-    networks:
-      - app-network
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: certbot_container
+  #   # These volumes must match those in the Nginx service.
+  #   volumes:
+  #     - certbot-web:/var/www/certbot # Shared with Nginx for challenges
+  #     - certbot-certs:/etc/letsencrypt # Shared with Nginx for certificates
+  #   # Certbot needs Nginx to be running to verify domain ownership
+  #   depends_on:
+  #     - nginx 
+  #   # The command to obtain initial certificates.
+  #   # IMPORTANT: Replace YOUR_EMAIL@EXAMPLE.COM with your actual email.
+  #   #            Replace ${HOST_IP_OR_DOMAIN} with your actual domain(s) from .env file.
+  #   #            --staging is for testing. REMOVE IT for production certificates!
+  #   command: certbot certonly --webroot -w /var/www/certbot --email Nest.alpine.cultural.team@gmail.com --agree-tos --no-eff-email -d ${HOST_IP_OR_DOMAIN} --staging
+  #   # Note: For automatic renewal, this 'command' will be modified later (e.g., to run a cron job inside).
+  #   networks:
+  #     - app-network
     # Do NOT expose ports for certbot, it talks to Nginx internally
 
   # --- Backend and Frontend Services (Internal Only) ---
@@ -77,6 +78,8 @@ services:
       - EVENT_SERVICE_URL=https://${HOST_IP_OR_DOMAIN}/events/
       # Also pass the actual domain to frontend for image URLs etc. if needed
       - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
+    volumes:
+      - frontend_feedback_data:/app/data/db
     networks:
       - app-network
 
@@ -101,10 +104,6 @@ services:
       - USER_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
       - ADMIN_PORTAL_URL=https://${HOST_IP_OR_DOMAIN}/admin-portal
       # For Auth Service Startup Admin provisioning (ensure these are set in your .env or build process)
-      - DEFAULT_ADMIN_USERNAME=admin_nacs
-      - DEFAULT_ADMIN_PASSWORD=adminpass # CHANGE THIS FOR PRODUCTION
-      - DEFAULT_ADMIN_EMAIL=admin@example.com
-      - DEFAULT_ADMIN_PHONE=9998887770
     depends_on:
       - db_api
     networks:
@@ -201,10 +200,36 @@ services:
     networks:
       - app-network
 
+  # payment-service:
+  #   build:
+  #     context: ./Payment_Serv
+  #   container_name: payment_service_container
+  #   restart: unless-stopped
+  #   environment:
+  #     - FLASK_RUN_PORT=5009
+  #     - FLASK_SCRIPT_NAME=/payment
+  #     - DB_API_URL=http://db_api:5004
+  #     - AUTH_SERVICE_URL=http://auth_api:5002
+  #     - EVENT_SERVICE_URL=http://event-service:5000
+  #     - PARTICIPATION_SERVICE_URL=http://participation-service:5005
+  #     - USER_PORTAL_ROOT_URL=https://${HOST_IP_OR_DOMAIN}/user-portal
+  #     - HOST_IP_OR_DOMAIN=${HOST_IP_OR_DOMAIN}
+  #   depends_on:
+  #     - db_api
+  #     - auth_api
+  #     - event-service
+  #     - participation-service
+
+  #   volumes:
+  #     - payment_data:/app/data/db
+  #   networks:
+  #     - app-network
+
 volumes:
   db_data:
   event_db_data:
   participation_db_data:
+  frontend_feedback_data:
   # NEW: Volumes for Certbot to store webroot files and certificates
   certbot-web: # Used for HTTP-01 challenges
   certbot-certs: # Used for storing obtained certificates

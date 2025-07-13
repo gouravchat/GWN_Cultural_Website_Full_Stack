@@ -88,6 +88,30 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
         }
         /* Responsive font for hero is now handled by Tailwind classes */
+
+        /* Styles for the image carousel */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 256px; /* h-64 from Tailwind */
+            overflow: hidden;
+            border-radius: 20px; /* rounded-2xl from Tailwind */
+        }
+
+        .carousel-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1s ease-in-out; /* Smooth fade transition */
+        }
+
+        .carousel-image.active {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="text-gray-800 bg-gradient-to-br from-green-50 via-yellow-50 to-pink-50 min-h-screen">
@@ -148,7 +172,7 @@
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">About Our Club</h2>
                 <div class="flex flex-col md:flex-row items-center md:space-x-16">
                     <div class="md:w-1/2 mb-12 md:mb-0 animate__animated animate__zoomIn glass p-4 rounded-2xl">
-                        <img src="https://placehold.co/700x500/a3e635/ffffff?text=Cultural+Gathering" alt="Cultural Gathering" class="rounded-2xl shadow-xl w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Not+Found';">
+                        <img src="{{ url_for('static', filename='images/cultural_gathering/cultural_gathering_main.jpg') }}" alt="Cultural Gathering" class="rounded-2xl shadow-xl w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Not+Found';">
                     </div>
                     <div class="md:w-1/2 text-lg leading-relaxed text-gray-700 animate__animated animate__fadeInUp animate__delay-1s">
                         <p class="mb-8">
@@ -179,24 +203,40 @@
             <div class="container mx-auto px-6 sm:px-8 md:px-16">
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-green-700 mb-16 animate__animated animate__fadeInUp">Our Gallery</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass">
-                        <img src="https://placehold.co/700x500/84cc16/ffffff?text=Annual+Festivities" alt="Event Highlight 1" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
-                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="carousel-container" id="annualFestivitiesCarousel">
+                            <img src="{{ url_for('static', filename='images/annual_festivities/festivity1.jpg') }}" alt="Annual Festivities 1" class="carousel-image active" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/annual_festivities/festivity2.jpg') }}" alt="Annual Festivities 2" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/annual_festivities/festivity3.jpg') }}" alt="Annual Festivities 3" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        </div>
+                        <div class="absolute inset-x-0 bottom-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
                             <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Annual Festivities</p>
                         </div>
                     </div>
+
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass delay-100">
-                        <img src="https://placehold.co/700x500/facc15/ffffff?text=Community+Gathering" alt="Event Highlight 2" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
-                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="carousel-container" id="communityGatheringCarousel">
+                            <img src="{{ url_for('static', filename='images/community_gathering/community1.jpg') }}" alt="Community Gathering 1" class="carousel-image active" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/community_gathering/community2.jpg') }}" alt="Community Gathering 2" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/community_gathering/community3.jpg') }}" alt="Community Gathering 3" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        </div>
+                        <div class="absolute inset-x-0 bottom-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
                             <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Community Gathering</p>
                         </div>
                     </div>
+
                     <div class="relative group rounded-2xl overflow-hidden shadow-xl transform hover:scale-110 transition duration-300 ease-in-out animate__animated animate__zoomIn glass delay-200">
-                        <img src="https://placehold.co/700x500/f472b6/ffffff?text=Art+Workshop" alt="Event Highlight 3" class="w-full h-64 sm:h-72 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
-                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="carousel-container" id="artWorkshopCarousel">
+                            <img src="{{ url_for('static', filename='images/art_workshop/art1.jpg') }}" alt="Art Workshop 1" class="carousel-image active" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/art_workshop/art2.jpg') }}" alt="Art Workshop 2" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                            <img src="{{ url_for('static', filename='images/art_workshop/art3.jpg') }}" alt="Art Workshop 3" class="carousel-image" onerror="this.onerror=null;this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Error';">
+                        </div>
+                        <div class="absolute inset-x-0 bottom-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
                             <p class="text-white text-xl md:text-2xl font-semibold text-center px-4">Art Workshop</p>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
@@ -219,7 +259,7 @@
                 <p class="text-lg md:text-xl mb-10 max-w-3xl mx-auto text-gray-700">
                     This secure portal is exclusively for authorized administrators. Efficiently manage events, oversee member registrations, and control club resources with ease.
                 </p>
-                <a href="{{ auth_service_login_url }}?target=admin" id="adminDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-8 py-4 md:px-10 md:py-5 rounded-full text-lg md:text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
+                <a href="{{ auth_service_login_url }}?target=admin" id="adminDashboardLink" class="inline-block bg-gradient-to-r from-green-400 via-yellow-400 to-pink-400 text-white px-8 py-4 md:px-10 md:py-5 rounded-full text-lg md::text-xl font-semibold hover:scale-110 transition duration-300 ease-in-out shadow-lg animate__animated animate__pulse">
                     Access Admin Dashboard
                 </a>
             </div>
@@ -232,8 +272,7 @@
                     Have questions, suggestions, or eager to join our community? We'd love to hear from you! Reach out through the form below or directly via contact details.
                 </p>
                 <div class="max-w-2xl mx-auto glass p-6 sm:p-10 rounded-2xl shadow-xl text-gray-800">
-                    <form action="#" method="POST" class="space-y-6">
-                        <div>
+                    <form id="contactForm" class="space-y-6"> <div>
                             <label for="name" class="block text-left text-base font-medium text-gray-700 mb-2">Name</label>
                             <input type="text" id="name" name="name" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-base" placeholder="Your Full Name" required>
                         </div>
@@ -245,10 +284,9 @@
                             <label for="message" class="block text-left text-base font-medium text-gray-700 mb-2">Message</label>
                             <textarea id="message" name="message" rows="5" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-base" placeholder="Your message..." required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg">
-                            Send Message
+                        <button type="submit" id="submitButton" class="w-full bg-green-600 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out shadow-lg"> Send Message
                         </button>
-                    </form>
+                        <div id="formMessage" class="mt-4 text-center text-sm font-medium"></div> </form>
                 </div>
                 <div class="mt-16 text-base md:text-lg">
                     <p class="mb-4"><strong>Email:</strong> <a href="mailto:nest" class="hover:underline">Nest.alpine.cultural.team@gmail.com</a></p>
@@ -274,6 +312,6 @@
         const AUTH_SERVICE_LOGIN_URL = "{{ auth_service_login_url|safe }}";
         const EVENT_SERVICE_API_BASE_URL = "{{ event_service_url|safe }}";
     </script>
-    <script src="/static/script.js" defer></script>
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </body>
 </html>

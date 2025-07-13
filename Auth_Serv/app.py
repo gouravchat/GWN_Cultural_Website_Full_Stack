@@ -6,29 +6,43 @@ from flask_cors import CORS
 import logging
 import time
 
+# Email sending imports
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+
 # Get the script name from environment variable, which Nginx will pass
-# If not present, default to empty string for local direct access
 AUTH_SERVICE_SCRIPT_NAME = os.environ.get('FLASK_SCRIPT_NAME', '')
 
-# Initialize Flask app, setting static_url_path to include the SCRIPT_NAME if defined.
-# This ensures that Flask's default static route automatically includes the prefix.
 app = Flask(__name__,
             static_url_path=AUTH_SERVICE_SCRIPT_NAME + '/static',
             static_folder='static')
 
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 # --- Configuration ---
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_default_very_secret_key_here_change_me_for_auth_serv')
 
 DB_API_URL = os.environ.get('DB_API_URL', 'http://localhost:5004')
 
-# Define redirect URLs. These should ideally come from environment variables.
-USER_PORTAL_URL_AFTER_LOGIN = os.environ.get('USER_PORTAL_URL', 'https://localhost/user-portal') # e.g., https://your-domain.com/user-portal
-ADMIN_PORTAL_URL_AFTER_LOGIN = os.environ.get('ADMIN_PORTAL_URL', 'https://localhost/admin-portal') # e.g., https://your-domain.com/admin-portal
+USER_PORTAL_URL_AFTER_LOGIN = os.environ.get('USER_PORTAL_URL', 'https://localhost/user-portal')
+ADMIN_PORTAL_URL_AFTER_LOGIN = os.environ.get('ADMIN_PORTAL_URL', 'https://localhost/admin-portal')
+
+# --- Email Sender Configuration ---
+# These MUST be set in your .env file and passed to the auth_api service in docker-compose.yml
+SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+EMAIL_SENDER = os.environ.get('EMAIL_SENDER',"nest.alpine.cultural.team@gmail.com") # The email address that will SEND the welcome emails
+EMAIL_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD',"ukdz guel pqyv pnfc") # The App Password for the SENDER email
+
+
+# print("Email Sender:", EMAIL_SENDER)
+# print("SMTP Server:", SMTP_SERVER)
+# print("SMTP Port:", SMTP_PORT)
+# print("EMAIL_PASSWORD:", EMAIL_PASSWORD)
+
 
 # --- Crucial: Set APPLICATION_ROOT and SCRIPT_NAME for Nginx proxying ---
-# APPLICATION_ROOT tells Flask about the external path it's served under.
 app.config['APPLICATION_ROOT'] = AUTH_SERVICE_SCRIPT_NAME
 
 # app logger configuration
@@ -36,32 +50,73 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 app_logger = logging.getLogger(__name__)
 
 #Admin password and user details for default admin creation
-DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin_nacs') # Default admin username
-DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'nestadmin@1234')   # Default admin password (CHANGE THIS IN PRODUCTION)
+DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin_nacs')
+DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'nestadmin@1234')
 DEFAULT_ADMIN_EMAIL = os.environ.get('DEFAULT_ADMIN_EMAIL', 'Nest.alpine.cultural.team@gmail.com')
 DEFAULT_ADMIN_PHONE = os.environ.get('DEFAULT_ADMIN_PHONE', '9933735742')
 
-# This hook ensures that Flask's url_for generates correct URLs and
-# request.path/request.url are correctly interpreted when behind a proxy.
+
 @app.before_request
 def set_script_name_from_proxy():
-    # If Nginx sends X-Forwarded-Prefix, use that as the SCRIPT_NAME
-    # This makes the Flask app aware of the external path prefix it's served under.
     if 'X-Forwarded-Prefix' in request.headers:
         request.environ['SCRIPT_NAME'] = request.headers['X-Forwarded-Prefix']
-    # If not proxied, but FLASK_SCRIPT_NAME env var is set, use that
     elif AUTH_SERVICE_SCRIPT_NAME:
         request.environ['SCRIPT_NAME'] = AUTH_SERVICE_SCRIPT_NAME
-    # Otherwise (direct access, no env var), SCRIPT_NAME is empty
     else:
         request.environ['SCRIPT_NAME'] = ''
+
+# --- Email Sending Helper Function ---
+def send_welcome_email(recipient_email, username, password):
+    """
+    Sends a welcome email to a new user with their username and password.
+    WARNING: Sending passwords in plain text via email is generally INSECURE.
+             Consider alternative methods like password reset links.
+    """
+    if not EMAIL_SENDER or not EMAIL_PASSWORD:
+        app_logger.error("Email sender credentials not configured. Cannot send welcome email.")
+        return False
+
+    subject = "Welcome to Nest Alpine Cultural Society!"
+    body = f"""
+Dear {username},
+
+Welcome to Nest Alpine Cultural Society! We are thrilled to have you as a new member.
+
+Here are your login credentials:
+Username: {username}
+Password: {password}
+
+You can log in to your User Portal here: {USER_PORTAL_URL_AFTER_LOGIN}
+
+We look forward to seeing you at our events and cultural gatherings!
+
+Best regards,
+The Nest Alpine Cultural Society Team
+"""
+    msg = MIMEText(body, 'plain', 'utf-8')
+    msg['Subject'] = subject
+    msg['From'] = EMAIL_SENDER
+    msg['To'] = recipient_email
+
+    context = ssl.create_default_context()
+
+    try:
+        app_logger.info(f"Attempting to send welcome email to {recipient_email}...")
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+            server.sendmail(EMAIL_SENDER, recipient_email, msg.as_string())
+        app_logger.info(f"Welcome email sent successfully to {recipient_email}.")
+        return True
+    except Exception as e:
+        app_logger.error(f"Error sending welcome email to {recipient_email}: {e}")
+        return False
 
 # --- Routes for Frontend (Login/Registration Page) ---
 @app.route('/')
 def login_or_register_page():
     """Serves the login/registration page (index.html for Auth_Serv)."""
     target_portal = request.args.get('target')
-    # Use url_for for static assets and ensure links are correctly generated by Flask
     return render_template('index.html', target_portal=target_portal) 
 
 @app.route('/login', methods=['GET'])
@@ -70,24 +125,12 @@ def login_page():
     target_portal = request.args.get('target')
     return render_template('index.html', target_portal=target_portal) 
 
-# The /static/<path:filename> route is now typically handled automatically by Flask
-# when static_url_path is set in app = Flask(...) and url_for('static', ...) is used.
-# You can remove this explicit route if you only rely on Flask's default static handling.
-# However, keeping it for explicit control is also fine, but ensure it's compatible
-# with the SCRIPT_NAME and static_url_path configuration.
-# @app.route(f'{AUTH_SERVICE_SCRIPT_NAME}/static/<path:filename>') # This route definition path might need adjustment if using SCRIPT_NAME.
-# The default Flask behavior is often enough. Let's rely on that first.
-# If you keep this route, ensure 'static_folder' is correctly mapped, and it's relative to the app.py location.
 @app.route('/static/<path:filename>')
 def serve_auth_static(filename):
     """Serves static files (CSS, JS) for the Auth_Serv's login/registration page."""
-    # This path is relative to the static_folder specified in Flask(__name__, static_folder='static')
-    # With SCRIPT_NAME, Flask's url_for('static', 'style.css') will generate /auth/static/style.css
-    # and this route will correctly handle /static/style.css internally after Nginx strips the prefix.
     return send_from_directory(app.static_folder, filename)
 
-# --- End Routes ---
-
+# --- Standard Login/Registration/Logout Routes ---
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -131,11 +174,8 @@ def login():
 
             redirect_url = ""
             if user.get('role') == 'admin':
-                # Admin Portal URL does not need user ID typically for its root page
-                # Ensure this is constructed with url_for if it's an internal route
                 redirect_url = ADMIN_PORTAL_URL_AFTER_LOGIN
             else:
-                # User Portal URL needs user ID as path parameter: http://localhost:5001/portal/123
                 base_user_portal_url = USER_PORTAL_URL_AFTER_LOGIN.rstrip('/')
                 redirect_url = f"{base_user_portal_url}/portal/{user['id']}"
 
@@ -179,7 +219,7 @@ def register_user():
     username = data.get('username')
     email = data.get('email')
     phone_number = data.get('phone_number')
-    password = data.get('password')
+    password = data.get('password') # The unhashed password, needed for email
 
     if not all([username, email, phone_number, password]):
         return jsonify({"error": "All fields are required."}), 400
@@ -206,7 +246,11 @@ def register_user():
         session['role'] = created_user.get('role', 'user')
         session.permanent = True
 
-        # Redirect new users to their portal page
+        # Send Welcome Email
+        send_email_success = send_welcome_email(email, username, password)
+        if not send_email_success:
+            app_logger.warning(f"Failed to send welcome email to {email} during registration.")
+
         base_user_portal_url = USER_PORTAL_URL_AFTER_LOGIN.rstrip('/')
         registration_redirect_url = f"{base_user_portal_url}/portal/{created_user['id']}"
 
@@ -242,10 +286,7 @@ def register_user():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    # Redirect to the Auth Service's own login page after logout
-    # Ensure url_for generates a path relative to SCRIPT_NAME
     return jsonify({"message": "Logout successful", "redirect_url": url_for('login_or_register_page', _external=False)}), 200
-
 
 @app.route('/hash_password', methods=['POST'])
 def hash_password_endpoint():
@@ -256,11 +297,7 @@ def hash_password_endpoint():
     hashed = hashpw(password.encode('utf-8'), gensalt())
     return jsonify({"hashed_password": hashed.decode('utf-8')}), 200
 
-
-# --- NEW: Function to create default admin user on startup ---
 # --- Admin User Creation Logic ---
-# This function is now a standalone helper.
-# It includes a retry mechanism for robustness during startup.
 def provision_admin_user_on_startup(app_instance):
     """
     Attempts to create a default admin user in the DB API if one doesn't exist.
@@ -278,8 +315,8 @@ def provision_admin_user_on_startup(app_instance):
         app_logger.error("Missing environment variables for DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, etc. Cannot provision default admin.")
         return
 
-    max_retries = 15 # Increased retries
-    retry_delay_seconds = 5 # Increased delay
+    max_retries = 15
+    retry_delay_seconds = 5
 
     for attempt in range(max_retries):
         try:
@@ -299,14 +336,12 @@ def provision_admin_user_on_startup(app_instance):
                 app_logger.info(f"Default admin user '{admin_username}' not found (DB API returned 404). Proceeding to create.")
             else:
                 app_logger.error(f"Failed to check for admin user existence (Status: {check_response.status_code}): {check_response.text}")
-                # If cannot check, retry (as it might be a temporary DB API issue)
                 raise requests.exceptions.RequestException(f"Failed initial check (status {check_response.status_code})")
 
             if user_found_in_db:
                 app_logger.info(f"Default admin user '{admin_username}' already exists in DB API. Skipping creation.")
-                return # Exit successfully
-
-            # 2. If admin user doesn't exist, create it
+                return
+            
             hashed_password = hashpw(admin_password.encode('utf-8'), gensalt()).decode('utf-8')
             admin_user_data = {
                 "username": admin_username,
@@ -321,7 +356,7 @@ def provision_admin_user_on_startup(app_instance):
             create_response.raise_for_status()
             
             app_logger.info(f"Default admin user '{admin_username}' created successfully in DB API.")
-            return # Exit successfully after creation
+            return
         
         except requests.exceptions.ConnectionError:
             app_logger.warning(f"Could not connect to DB API at '{DB_API_URL}' (attempt {attempt + 1}). Retrying in {retry_delay_seconds}s...")
@@ -331,13 +366,12 @@ def provision_admin_user_on_startup(app_instance):
             response_text = e.response.text if e.response else 'N/A'
             status_code = e.response.status_code if e.response is not None else 500
             app_logger.warning(f"Error during admin user creation (attempt {attempt + 1}): {e} (Status: {status_code}). Response: {response_text}. Retrying in {retry_delay_seconds}s...")
-            if status_code == 409: # Conflict means user exists, so it's not an error that needs retry
+            if status_code == 409:
                 app_logger.info(f"Admin creation failed due to conflict (user might have been created by another process or concurrent startup). Skipping further retries for creation.")
-                return # Exit successfully if user already exists
+                return
         except Exception as e:
             app_logger.critical(f"An unexpected error occurred during default admin provisioning on startup (attempt {attempt + 1}): {e}", exc_info=True)
-            # For unhandled critical errors, re-raise if max retries hit, or log and retry.
-        
+            
         if attempt < max_retries - 1:
             time.sleep(retry_delay_seconds)
         else:
@@ -345,13 +379,5 @@ def provision_admin_user_on_startup(app_instance):
 
 
 if __name__ == '__main__':
-    # This block runs ONLY when the script is executed directly (e.g., `python app.py`).
-    # It does NOT run when Gunicorn (or other WSGI servers) imports the `app` object.
-    # We need to call the admin provisioning logic here.
-    # It must run within an app context if it needs to access app.config, etc.
-    # For this specific case, as it uses requests and logging, it doesn't strictly need
-    # app.app_context() if it's external calls. But it's good practice for Flask-related startup.
-    #with app.app_context(): # Provide app context for safety and consistency
     provision_admin_user_on_startup(app)   
-    # Run the Flask development server
     app.run(host='0.0.0.0', port=5002, debug=True)

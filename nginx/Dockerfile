@@ -6,4 +6,6 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy your custom nginx.conf file into the container's configuration directory.
 # When Nginx starts, it will automatically load this configuration.
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+#COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+EXPOSE 443
