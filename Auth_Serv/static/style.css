@@ -7,6 +7,7 @@ body {
     min-height: 100vh;
     margin: 0;
     color: #333;
+    overflow-x: hidden; /* Prevent horizontal scrollbar if content overflows */
 }
 
 .login-container {
@@ -14,10 +15,12 @@ body {
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 400px;
+    width: 100%; /* Ensure it takes full width up to max-width */
+    max-width: 400px; /* Max width for the form container */
     text-align: center;
     animation: fadeIn 0.8s ease-out;
+    box-sizing: border-box; /* IMPORTANT: Include padding in width calculation for responsive sizing */
+    margin: 20px; /* Add some margin on sides for smaller screens */
 }
 
 @keyframes fadeIn {
@@ -30,12 +33,13 @@ h1 {
     margin-bottom: 30px;
     font-size: 2.5em;
     letter-spacing: 1px;
+    word-wrap: break-word; /* Ensure long titles wrap */
 }
 
 .input-group {
     margin-bottom: 20px;
     text-align: left;
-    position: relative; /* Needed for button positioning */
+    position: relative; /* Needed for button positioning (only applies if button is absolute) */
 }
 
 .input-group label {
@@ -46,7 +50,7 @@ h1 {
 }
 
 .input-group input {
-    width: 100%; /* Full width */
+    width: 100%; /* Full width for login/register form inputs */
     padding: 12px;
     box-sizing: border-box; /* Include padding in width */
     border: 1px solid #ddd;
@@ -61,9 +65,10 @@ h1 {
     outline: none;
 }
 
-/* Style for the Send OTP button */
+/* Original Style for the Send OTP button - This will be overridden for the forgot password section */
+/* Keep this section but it won't apply to the forgot password button due to more specific selectors below */
 #sendOtpButton {
-    position: absolute;
+    position: absolute; /* This specific ID selector makes it less specific than the new rules below */
     right: 5px;
     top: 35px; /* Adjust vertical position */
     height: 30px;
@@ -71,6 +76,11 @@ h1 {
     font-size: 0.8em;
     background-color: #6c757d;
     border-color: #6c757d;
+    color: white; /* Ensure text is visible */
+    border-radius: 5px; /* Consistent styling */
+    white-space: nowrap;
+    line-height: 30px; /* Adjust line-height to vertically center text */
+    box-sizing: border-box;
 }
 
 #sendOtpButton:hover {
@@ -136,4 +146,109 @@ button:disabled {
     color: #721c24;
     border: 1px solid #f5c6cb;
     display: block;
+}
+
+/* New styles for Forgot Password feature */
+.forgot-password {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.forgot-password a {
+    color: #2575fc;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.forgot-password-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%; /* Ensure it takes full width up to max-width */
+    max-width: 400px; /* Max width for the form container */
+    text-align: center;
+    animation: fadeIn 0.8s ease-out;
+    display: none; /* Hidden by default */
+    box-sizing: border-box; /* IMPORTANT: Include padding in width calculation for responsive sizing */
+    margin: 20px; /* IMPORTANT: Add some margin on sides for smaller screens */
+}
+
+/* Show container when active */
+.forgot-password-container.active {
+    display: block;
+}
+
+/* SPECIFICALLY FOR THE FORGOT PASSWORD SECTION: Make input full width again */
+.forgot-password-container .input-group input {
+    width: 100%; /* Now it should stretch */
+    padding-right: 12px; /* Reset padding-right as button is now below */
+}
+
+/* General button styling for .input-group buttons */
+/* Ensure these styles are applied to the Send Details button inside forgot password form too */
+.input-group button {
+    height: 40px; /* Slightly larger height */
+    font-size: 0.9em; /* Slightly smaller font for better fit */
+    padding: 0 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    /* This rule defines the attractive color you asked for, and makes it full width */
+    background-color: #007bff; /* Attractive blue */
+    color: white;
+    border: 1px solid #007bff;
+    box-sizing: border-box; /* Crucial for consistent sizing */
+    width: 100%; /* Make it full width */
+    margin-top: 15px; /* Add space between input and button */
+    position: static; /* Remove absolute positioning */
+    transform: none; /* Remove transform */
+}
+
+.input-group button:hover {
+    background-color: #0056b3;
+}
+
+/* Override for the #sendOtpButton to remove absolute positioning */
+/* This specific selector is needed because #sendOtpButton had its own absolute positioning before */
+.forgot-password-container #sendOtpButton {
+    position: static; /* Remove absolute positioning */
+    top: auto; /* Reset top */
+    right: auto; /* Reset right */
+    transform: none; /* Remove transform */
+    background-color: #28a745; /* Green color for Send Details */
+    border-color: #28a745;
+}
+
+.forgot-password-container #sendOtpButton:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+
+#resetPasswordButton {
+    margin-top: 20px;
+    background-color: #28a745; /* Green for reset */
+    border-color: #28a745;
+}
+
+#resetPasswordButton:hover {
+    background-color: #218838;
+}
+
+/* back to login button */
+.back-to-login {
+    margin-top: 20px;
+}
+
+.back-to-login a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.back-to-login a:hover {
+    text-decoration: underline;
 }

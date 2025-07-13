@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login / Register (Greenoowd Nest- NACS-Users/Admins)</title>
-    <!-- Use Flask's url_for to generate the correct path for static files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -42,9 +41,27 @@
             <span id="toggleText">Don't have an account?</span>
             <a href="#" id="toggleAuthMode">Register here</a>
         </p>
+        <p class="forgot-password">
+            <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </p>
     </div>
 
-    <!-- Use Flask's url_for to generate the correct path for the JavaScript file -->
+    <div class="forgot-password-container" id="forgotPasswordContainer">
+        <h2>Forgot Password</h2>
+        <form id="forgotPasswordForm">
+            <div class="input-group">
+                <label for="forgotEmail">Enter your Email:</label>
+                <input type="email" id="forgotEmail" name="forgotEmail" required>
+                <button type="button" id="sendOtpButton">Send Details</button>
+            </div>
+            <p id="forgotMessage" class="message"></p>
+            <button type="submit" id="resetPasswordButton" style="display: none;">Reset Password</button>
+        </form>
+        <p class="back-to-login">
+            <a href="#" id="backToLoginLink">Back to Login</a>
+        </p>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

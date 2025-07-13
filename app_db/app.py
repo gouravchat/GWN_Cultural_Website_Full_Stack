@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import logging # Import logging
 
 app = Flask(__name__)
 
@@ -14,6 +15,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////app/data/users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# Configure logger for db service
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+db_logger = logging.getLogger(__name__)
 
 # Database Model for User
 class User(db.Model):
@@ -34,7 +39,7 @@ class User(db.Model):
             'email': self.email,
             'phone_number': self.phone_number, # Include phone number
             'role': self.role,
-            'hashed_password': self.hashed_password
+            'hashed_password': self.hashed_password # Still include hashed password for completeness if needed by other services
         }
 
 # --- API Endpoints ---
@@ -66,10 +71,11 @@ def create_user():
     try:
         db.session.add(new_user)
         db.session.commit()
+        db_logger.info(f"User '{username}' created successfully.")
         return jsonify(new_user.to_dict()), 201
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Error creating user: {e}")
+        db_logger.error(f"Error creating user: {e}")
         return jsonify({"error": "Could not create user.", "details": str(e)}), 500
 
 @app.route('/users', methods=['GET'])
@@ -102,6 +108,57 @@ def get_user_by_id(user_id):
     if user:
         return jsonify(user.to_dict()), 200
     return jsonify({"message": "User not found."}), 404
+
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    """
+    Updates an existing user's information.
+    Specifically used for updating hashed_password during password reset.
+    Expected JSON: {"hashed_password": "..."} (or other fields)
+    """
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found."}), 404
+
+    data = request.get_json()
+
+    # Allow updating of specific fields. Here, we focus on hashed_password.
+    # You can extend this to allow updating other fields as needed.
+    if 'hashed_password' in data:
+        user.hashed_password = data['hashed_password']
+        db_logger.info(f"User {user_id}: hashed_password updated.")
+    
+    if 'username' in data:
+        if User.query.filter(User.username == data['username'], User.id != user_id).first():
+            return jsonify({"error": "Username already taken."}), 409
+        user.username = data['username']
+        db_logger.info(f"User {user_id}: username updated to {data['username']}.")
+    
+    if 'email' in data:
+        if User.query.filter(User.email == data['email'], User.id != user_id).first():
+            return jsonify({"error": "Email already registered."}), 409
+        user.email = data['email']
+        db_logger.info(f"User {user_id}: email updated to {data['email']}.")
+
+    if 'phone_number' in data:
+        if User.query.filter(User.phone_number == data['phone_number'], User.id != user_id).first():
+            return jsonify({"error": "Phone number already registered."}), 409
+        user.phone_number = data['phone_number']
+        db_logger.info(f"User {user_id}: phone_number updated to {data['phone_number']}.")
+
+    if 'role' in data:
+        user.role = data['role']
+        db_logger.info(f"User {user_id}: role updated to {data['role']}.")
+
+
+    try:
+        db.session.commit()
+        return jsonify(user.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        db_logger.error(f"Error updating user {user_id}: {e}")
+        return jsonify({"error": "Could not update user.", "details": str(e)}), 500
+
 
 # --- Database Initialization ---
 with app.app_context():
